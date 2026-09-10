@@ -1,0 +1,1974 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Theo Dõi Sản Lượng & Điểm SPX</title>
+<!-- OCR Engine CDN -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+  :root {
+    --bg-gradient: radial-gradient(at 0% 0%, #e0e7ff 0px, transparent 50%),
+                   radial-gradient(at 100% 0%, #fce7f3 0px, transparent 50%),
+                   radial-gradient(at 100% 100%, #dcfce7 0px, transparent 50%),
+                   radial-gradient(at 0% 100%, #e0f2fe 0px, transparent 50%),
+                   #f8fafc;
+    --glass-surface: rgba(255, 255, 255, 0.85);
+    --glass-subtle: rgba(255, 255, 255, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.85);
+    --glass-border-subtle: rgba(255, 255, 255, 0.45);
+    --glass-shadow: 0 4px 20px 0 rgba(31, 38, 135, 0.08);
+
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+
+    --spx-orange: #ff5722;
+    --spx-orange-hover: #f4511e;
+
+    --glass-emerald: rgba(16, 185, 129, 0.12);
+    --glass-emerald-border: rgba(16, 185, 129, 0.35);
+    --glass-emerald-text: #047857;
+
+    --glass-violet: rgba(139, 92, 246, 0.12);
+    --glass-violet-border: rgba(139, 92, 246, 0.35);
+    --glass-violet-text: #6d28d9;
+
+    --glass-sky: rgba(14, 165, 233, 0.12);
+    --glass-sky-border: rgba(14, 165, 233, 0.35);
+    --glass-sky-text: #0369a1;
+
+    --glass-amber: rgba(245, 158, 11, 0.14);
+    --glass-amber-border: rgba(245, 158, 11, 0.4);
+    --glass-amber-text: #b45309;
+
+    --glass-rose: rgba(244, 63, 94, 0.14);
+    --glass-rose-border: rgba(244, 63, 94, 0.35);
+    --glass-rose-text: #be123c;
+
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --blur: blur(16px);
+  }
+
+  [data-theme="dark"] {
+    --bg-gradient: radial-gradient(at 0% 0%, #1e1b4b 0px, transparent 55%),
+                   radial-gradient(at 100% 0%, #3b0764 0px, transparent 55%),
+                   radial-gradient(at 100% 100%, #064e3b 0px, transparent 55%),
+                   radial-gradient(at 0% 100%, #0c4a6e 0px, transparent 55%),
+                   #090d16;
+
+    --glass-surface: rgba(17, 24, 39, 0.85);
+    --glass-subtle: rgba(23, 32, 51, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-border-subtle: rgba(255, 255, 255, 0.06);
+    --glass-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.4);
+
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+
+    --spx-orange: #ff6e40;
+    --spx-orange-hover: #ff5722;
+
+    --glass-emerald-text: #6ee7b7;
+    --glass-violet-text: #c4b5fd;
+    --glass-sky-text: #7dd3fc;
+    --glass-amber-text: #fde047;
+    --glass-rose-text: #fda4af;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+  
+  body {
+    background: var(--bg-gradient);
+    background-attachment: fixed;
+    background-size: cover;
+    color: var(--text-primary);
+    line-height: 1.4;
+    min-height: 100vh;
+    padding-bottom: calc(75px + env(safe-area-inset-bottom, 16px));
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  .top-nav {
+    background: var(--glass-surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    box-shadow: var(--glass-shadow);
+  }
+
+  .nav-title {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--spx-orange);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .header-actions { display: flex; align-items: center; gap: 8px; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border);
+    cursor: pointer;
+    background: var(--glass-surface);
+    color: var(--text-primary);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    transition: all 0.2s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { 
+    background: var(--spx-orange); 
+    border-color: var(--spx-orange); 
+    color: #fff; 
+    box-shadow: 0 3px 12px rgba(255, 87, 34, 0.35); 
+  }
+
+  .layout-shell {
+    max-width: 960px;
+    margin: 8px auto;
+    padding: 0 10px;
+  }
+
+  /* BOTTOM TAB BAR */
+  .vertical-sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--glass-surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border-top: 1px solid var(--glass-border);
+    border-radius: 18px 18px 0 0;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    z-index: 50;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    max-width: 650px;
+    margin: 0 auto;
+  }
+
+  .tab-btn {
+    width: 100%;
+    padding: 6px 2px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: var(--radius-sm);
+    gap: 2px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .tab-btn span:first-child { font-size: 18px; line-height: 1; }
+  .tab-btn.active {
+    color: var(--spx-orange);
+    background: var(--glass-subtle);
+    font-weight: 700;
+  }
+
+  .content-area { min-width: 0; width: 100%; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  .app-container { display: flex; flex-direction: column; gap: 12px; }
+
+  .card {
+    background: var(--glass-surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--glass-border);
+    padding: 14px;
+    box-shadow: var(--glass-shadow);
+    margin-bottom: 12px;
+  }
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .card-head h2 { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+  .card-head p { font-size: 11px; color: var(--text-muted); }
+
+  /* OVERVIEW HERO RE-DESIGNED */
+  .overview-hero-card {
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid var(--glass-emerald-border);
+    background: linear-gradient(135deg, var(--glass-emerald) 0%, rgba(16, 185, 129, 0.04) 100%);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .hero-rank-select-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--glass-surface);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border);
+    gap: 8px;
+  }
+  .hero-rank-select-box label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  .select-control {
+    background: var(--glass-subtle);
+    border: 1px solid var(--glass-border);
+    color: var(--spx-orange);
+    font-weight: 700;
+    font-size: 13px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .hero-calc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--glass-subtle);
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border-subtle);
+  }
+  .calc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .calc-row span.label { font-weight: 600; }
+  .calc-row span.val { font-weight: 700; color: var(--text-primary); }
+
+  .hero-grand-total {
+    background: linear-gradient(135deg, var(--spx-orange), #f4511e);
+    color: #fff;
+    padding: 14px;
+    border-radius: var(--radius-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(255, 87, 34, 0.35);
+  }
+  .hero-grand-total .grand-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    opacity: 0.95;
+  }
+  .hero-grand-total .grand-val {
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+  }
+
+  .overview-bar-ratio {
+    height: 8px;
+    background: rgba(148, 163, 184, 0.2);
+    border-radius: 8px;
+    display: flex;
+    overflow: hidden;
+    gap: 1px;
+  }
+  .overview-bar-ratio .ratio-del { background: #8b5cf6; transition: width 0.3s; }
+  .overview-bar-ratio .ratio-pick { background: #0ea5e9; transition: width 0.3s; }
+  .overview-bar-ratio .ratio-ret { background: #f59e0b; transition: width 0.3s; }
+
+  /* 3 COLS STATS */
+  .stat-grid-reorganized {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  @media (max-width: 480px) {
+    .stat-grid-reorganized { grid-template-columns: 1fr; }
+  }
+
+  .stat-card-item {
+    border-radius: var(--radius-md);
+    padding: 12px;
+    border: 1px solid;
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .stat-card-item.type-del { background: var(--glass-violet); border-color: var(--glass-violet-border); }
+  .stat-card-item.type-pick { background: var(--glass-sky); border-color: var(--glass-sky-border); }
+  .stat-card-item.type-ret { background: var(--glass-amber); border-color: var(--glass-amber-border); }
+
+  .stat-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .stat-card-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .type-del .stat-card-title, .type-del .stat-card-val { color: var(--glass-violet-text); }
+  .type-pick .stat-card-title, .type-pick .stat-card-val { color: var(--glass-sky-text); }
+  .type-ret .stat-card-title, .type-ret .stat-card-val { color: var(--glass-amber-text); }
+
+  .stat-card-val { font-size: 16px; font-weight: 800; }
+  .stat-card-foot {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px dashed rgba(148, 163, 184, 0.3);
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .overview-box {
+    border-radius: var(--radius-md);
+    padding: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    border: 1px solid;
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+  }
+  .overview-box.delivery-theme { background: var(--glass-violet); border-color: var(--glass-violet-border); color: var(--glass-violet-text); }
+  .overview-box.pickup-theme { background: var(--glass-sky); border-color: var(--glass-sky-border); color: var(--glass-sky-text); }
+  .overview-box.return-theme { background: var(--glass-amber); border-color: var(--glass-amber-border); color: var(--glass-amber-text); }
+  .overview-label { font-size: 10px; font-weight: 700; text-transform: uppercase; opacity: 0.9; }
+  .overview-value { font-size: 20px; font-weight: 800; margin-top: 2px; }
+  .overview-sub { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+  .overview-pill {
+    background: var(--glass-surface);
+    border: 1px solid var(--glass-border);
+    padding: 5px 11px;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .table-scroll { 
+    overflow-x: auto; 
+    border-radius: var(--radius-md); 
+    border: 1px solid var(--glass-border-subtle); 
+    -webkit-overflow-scrolling: touch;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+  th {
+    text-align: left;
+    padding: 9px 10px;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--glass-border-subtle);
+    background: var(--glass-subtle);
+  }
+  th:last-child, td:last-child { text-align: right; }
+  td { 
+    padding: 10px; 
+    border-bottom: 1px solid var(--glass-border-subtle); 
+    color: var(--text-primary); 
+    background: rgba(255, 255, 255, 0.05);
+  }
+  tr:last-child td { border-bottom: none; }
+  .weight-name { font-weight: 600; color: var(--text-secondary); }
+  .order-num { font-weight: 700; }
+  .order-num.delivery-num { color: var(--glass-violet-text); }
+  .order-num.pickup-num { color: var(--glass-sky-text); }
+  .order-num.return-num { color: var(--glass-amber-text); }
+  .order-num.zero { color: var(--text-muted); font-weight: 400; }
+  .points-badge { font-weight: 700; color: var(--glass-emerald-text); }
+  .points-badge.zero { color: var(--text-muted); font-weight: 400; }
+
+  .bar-container {
+    height: 4px;
+    background: rgba(148, 163, 184, 0.2);
+    border-radius: 4px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+  .bar-fill { height: 100%; border-radius: 4px; }
+  .bar-fill.del { background: #8b5cf6; }
+  .bar-fill.pick { background: #0ea5e9; }
+  .bar-fill.ret { background: #f59e0b; }
+
+  /* SUGGESTION */
+  .suggestion-item {
+    background: var(--glass-subtle);
+    border: 1px solid var(--glass-border-subtle);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+  }
+  .sugg-left h4 { font-size: 12px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 5px; }
+  .sugg-left p { font-size: 11px; margin-top: 2px; font-weight: 500; color: var(--text-muted); }
+  .sugg-points { font-size: 12px; font-weight: 800; color: var(--glass-emerald-text); white-space: nowrap; }
+
+  .suggestion-item.sugg-del { background: var(--glass-violet); border-color: var(--glass-violet-border); }
+  .suggestion-item.sugg-del .sugg-left h4, .suggestion-item.sugg-del .sugg-points { color: var(--glass-violet-text); }
+
+  .suggestion-item.sugg-pick { background: var(--glass-sky); border-color: var(--glass-sky-border); }
+  .suggestion-item.sugg-pick .sugg-left h4, .suggestion-item.sugg-pick .sugg-points { color: var(--glass-sky-text); }
+
+  .suggestion-item.sugg-ret { background: var(--glass-amber); border-color: var(--glass-amber-border); }
+  .suggestion-item.sugg-ret .sugg-left h4, .suggestion-item.sugg-ret .sugg-points { color: var(--glass-amber-text); }
+
+  .sugg-type-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid;
+    display: inline-block;
+  }
+  .sugg-type-del { background: var(--glass-violet); border-color: var(--glass-violet-border); color: var(--glass-violet-text); }
+  .sugg-type-pick { background: var(--glass-sky); border-color: var(--glass-sky-border); color: var(--glass-sky-text); }
+  .sugg-type-ret { background: var(--glass-amber); border-color: var(--glass-amber-border); color: var(--glass-amber-text); }
+
+  .history-filter-bar { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+  .filter-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border-subtle);
+    background: var(--glass-subtle);
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .filter-btn.active {
+    background: var(--glass-surface);
+    color: var(--text-primary);
+    border-color: var(--glass-border);
+  }
+  .history-entry {
+    border: 1px solid var(--glass-border-subtle);
+    background: var(--glass-subtle);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .hist-badge-tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 5px;
+    margin-right: 4px;
+    border: 1px solid;
+  }
+  .tag-delivery { background: var(--glass-violet); border-color: var(--glass-violet-border); color: var(--glass-violet-text); }
+  .tag-pickup { background: var(--glass-sky); border-color: var(--glass-sky-border); color: var(--glass-sky-text); }
+  .tag-return { background: var(--glass-amber); border-color: var(--glass-amber-border); color: var(--glass-amber-text); }
+  .hist-meta { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+  .hist-detail { font-size: 11px; color: var(--text-muted); margin-top: 3px; word-break: break-word; }
+  .hist-del-btn {
+    border: 1px solid var(--glass-rose-border);
+    background: var(--glass-rose);
+    color: var(--glass-rose-text);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  /* MODALS */
+  .modal-shade {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+    z-index: 100;
+  }
+  .modal-shade.active { display: flex; }
+  .modal-box {
+    background: var(--glass-surface);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    width: 100%;
+    max-width: 680px;
+    border-radius: 20px 20px 0 0;
+    border: 1px solid var(--glass-border);
+    border-bottom: none;
+    box-shadow: var(--glass-shadow);
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .modal-box-head {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--glass-border-subtle);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .modal-box-head h3 { font-size: 14px; font-weight: 700; }
+  .modal-close-btn { border: none; background: transparent; font-size: 18px; color: var(--text-muted); cursor: pointer; padding: 4px; }
+  .modal-body { 
+    padding: 14px; 
+    overflow-y: auto; 
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+  }
+
+  .modal-section-card {
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border: 1px solid;
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+  }
+  .modal-section-card.card-del { background: var(--glass-violet); border-color: var(--glass-violet-border); }
+  .modal-section-card.card-pick { background: var(--glass-sky); border-color: var(--glass-sky-border); }
+  .modal-section-card.card-ret { background: var(--glass-amber); border-color: var(--glass-amber-border); }
+
+  .modal-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .card-del .modal-section-title { color: var(--glass-violet-text); }
+  .card-pick .modal-section-title { color: var(--glass-sky-text); }
+  .card-ret .modal-section-title { color: var(--glass-amber-text); }
+
+  .weights-horizontal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  @media (min-width: 550px) {
+    .weights-horizontal-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  .weight-input-item label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 3px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+  .input-control {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    outline: none;
+    background: var(--glass-subtle);
+    color: var(--text-primary);
+  }
+  .input-control:focus { border-color: var(--spx-orange); }
+  .modal-box-foot { 
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); 
+    border-top: 1px solid var(--glass-border-subtle); 
+    background: var(--glass-subtle); 
+    display: flex; 
+    justify-content: flex-end; 
+    gap: 8px; 
+    flex-shrink: 0;
+  }
+
+  .scan-status-banner {
+    background: rgba(14, 165, 233, 0.15);
+    border: 1px solid var(--glass-sky-border);
+    color: var(--glass-sky-text);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  @media (min-width: 768px) {
+    .modal-shade { padding: 16px; align-items: center; }
+    .modal-box { border-radius: var(--radius-lg); border-bottom: 1px solid var(--glass-border); }
+  }
+</style>
+</head>
+<body>
+
+<header class="top-nav">
+  <div class="nav-title">
+    <span>📦 SPX Points Tracker</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn" id="themeToggleBtn" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
+      <span id="themeIcon">🌙</span> <span id="themeText">Tối</span>
+    </button>
+    <button class="btn btn-primary" onclick="openAddModal()">＋ Nhập liệu</button>
+  </div>
+</header>
+
+<div class="layout-shell">
+  <!-- BOTTOM TAB BAR -->
+  <aside class="vertical-sidebar">
+    <button class="tab-btn active" onclick="switchMainTab('overview', this)">
+      <span>📊</span>
+      <span>Tổng Quan</span>
+    </button>
+    <button class="tab-btn" onclick="switchMainTab('delivery', this)">
+      <span>🚚</span>
+      <span>Đơn Giao</span>
+    </button>
+    <button class="tab-btn" onclick="switchMainTab('pickup', this)">
+      <span>📥</span>
+      <span>Đơn Lấy</span>
+    </button>
+    <button class="tab-btn" onclick="switchMainTab('return', this)">
+      <span>📦</span>
+      <span>Đơn Hoàn</span>
+    </button>
+    <button class="tab-btn" onclick="switchMainTab('history', this)">
+      <span>🗂️</span>
+      <span>Nhật Ký</span>
+    </button>
+  </aside>
+
+  <div class="content-area">
+    <!-- TAB 0: TỔNG QUAN -->
+    <div class="tab-panel active" id="tab-overview">
+      <main class="app-container">
+        <section class="card">
+          <!-- GIAO DIỆN HERO MỚI -->
+          <div class="overview-hero-card">
+            <div class="hero-rank-select-box">
+              <label for="riderRankSelect">🎖️ Thứ hạng của bạn:</label>
+              <select id="riderRankSelect" class="select-control" onchange="onRankChange(this.value)">
+                <option value="none">Không hạng</option>
+                <option value="dong">Đồng (+10%)</option>
+                <option value="bac">Bạc (+15%)</option>
+                <option value="vang">Vàng (+20%)</option>
+                <option value="bachkim">Bạch Kim (+22%)</option>
+                <option value="kimcuong">Kim Cương (+26%)</option>
+              </select>
+            </div>
+
+            <div class="hero-calc-list">
+              <div class="calc-row">
+                <span class="label">🌟 Tổng điểm sản lượng:</span>
+                <span class="val" id="overallProductionPoints">0 VNĐ</span>
+              </div>
+              <div class="calc-row">
+                <span class="label">📍 Điểm khoảng cách + Ngày công:</span>
+                <span class="val" id="overallDistanceWorkPoints">0 VNĐ</span>
+              </div>
+              <div style="font-size:10px; color:var(--text-muted); margin-top:-4px;" id="workDaysSummaryDetail">
+                (0 ngày công đạt chuẩn · 0 ngày nửa công)
+              </div>
+              <div class="calc-row">
+                <span class="label">🎁 Điểm thưởng thứ hạng:</span>
+                <span class="val" id="overallRankBonusPoints">0 VNĐ</span>
+              </div>
+            </div>
+
+            <div class="hero-grand-total">
+              <div>
+                <div class="grand-label">TỔNG ĐIỂM TẠM TÍNH</div>
+              </div>
+              <div class="grand-val" id="overallGrandTotalPoints">0 VNĐ</div>
+            </div>
+
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:600; color:var(--text-muted); margin-bottom:4px;">
+                <span>Phân bổ sản lượng:</span>
+                <span id="ratioText">0% Giao · 0% Lấy · 0% Hoàn</span>
+              </div>
+              <div class="overview-bar-ratio">
+                <div class="ratio-del" id="ratioBarDel" style="width: 33.3%"></div>
+                <div class="ratio-pick" id="ratioBarPick" style="width: 33.3%"></div>
+                <div class="ratio-ret" id="ratioBarRet" style="width: 33.4%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-grid-reorganized">
+            <div class="stat-card-item type-del">
+              <div class="stat-card-head">
+                <span class="stat-card-title">🚚 Đơn Giao</span>
+                <span style="font-size:10px; font-weight:700; opacity:0.8;">Bảng 5</span>
+              </div>
+              <div class="stat-card-val" id="miniDelPoints">0 VNĐ</div>
+              <div class="stat-card-foot">
+                <span>Sản lượng:</span>
+                <b id="miniDelOrders">0 đơn</b>
+              </div>
+            </div>
+
+            <div class="stat-card-item type-pick">
+              <div class="stat-card-head">
+                <span class="stat-card-title">📥 Đơn Lấy</span>
+                <span style="font-size:10px; font-weight:700; opacity:0.8;">Bảng 4</span>
+              </div>
+              <div class="stat-card-val" id="miniPickPoints">0 VNĐ</div>
+              <div class="stat-card-foot">
+                <span>Sản lượng:</span>
+                <b id="miniPickOrders">0 đơn</b>
+              </div>
+            </div>
+
+            <div class="stat-card-item type-ret">
+              <div class="stat-card-head">
+                <span class="stat-card-title">📦 Đơn Hoàn</span>
+                <span style="font-size:10px; font-weight:700; opacity:0.8;">Bảng 6</span>
+              </div>
+              <div class="stat-card-val" id="miniRetPoints">0 VNĐ</div>
+              <div class="stat-card-foot">
+                <span>Sản lượng:</span>
+                <b id="miniRetOrders">0 đơn</b>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <h2>🎯 Cơ Hội Tăng Điểm Tiếp Theo</h2>
+              <p>Số đơn cần thêm để đạt mốc cao hơn</p>
+            </div>
+          </div>
+          <div class="history-filter-bar" style="margin-bottom:8px;">
+            <button class="filter-btn active" onclick="setOverviewFilter('all', this)">Tất cả</button>
+            <button class="filter-btn" onclick="setOverviewFilter('del', this)">🚚 Giao</button>
+            <button class="filter-btn" onclick="setOverviewFilter('pick', this)">📥 Lấy</button>
+            <button class="filter-btn" onclick="setOverviewFilter('ret', this)">📦 Hoàn</button>
+          </div>
+          <div id="overviewMilestoneList"></div>
+        </section>
+      </main>
+    </div>
+
+    <!-- TAB 1: ĐƠN GIAO -->
+    <div class="tab-panel" id="tab-delivery">
+      <main class="app-container">
+        <section class="card">
+          <div class="overview-box delivery-theme">
+            <div>
+              <div class="overview-label">Tổng Điểm Đơn Giao</div>
+              <div class="overview-value" id="delTotalPoints">0 VNĐ</div>
+              <div class="overview-sub" id="delSummarySub">Chưa có bản ghi</div>
+            </div>
+            <div class="overview-pill" id="delTotalOrders">0 đơn</div>
+          </div>
+
+          <div class="card-head">
+            <div>
+              <h2>Phân Bổ Sản Lượng Đơn Giao</h2>
+            </div>
+          </div>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Khối lượng</th>
+                  <th>Sản lượng</th>
+                  <th>Mốc đạt</th>
+                  <th>Tổng điểm</th>
+                </tr>
+              </thead>
+              <tbody id="delTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <div>
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <h2>Mục Tiêu Đơn Giao</h2>
+                <p>Số đơn cần thêm để chạm mốc tiếp theo</p>
+              </div>
+            </div>
+            <div id="delMilestoneList"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- TAB 2: ĐƠN LẤY -->
+    <div class="tab-panel" id="tab-pickup">
+      <main class="app-container">
+        <section class="card">
+          <div class="overview-box pickup-theme">
+            <div>
+              <div class="overview-label">Tổng Điểm Đơn Lấy</div>
+              <div class="overview-value" id="pickTotalPoints">0 VNĐ</div>
+              <div class="overview-sub" id="pickSummarySub">Chưa có bản ghi</div>
+            </div>
+            <div class="overview-pill" id="pickTotalOrders">0 đơn</div>
+          </div>
+
+          <div class="card-head">
+            <div>
+              <h2>Phân Bổ Sản Lượng Đơn Lấy</h2>
+            </div>
+          </div>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Khối lượng</th>
+                  <th>Sản lượng</th>
+                  <th>Mốc đạt</th>
+                  <th>Tổng điểm</th>
+                </tr>
+              </thead>
+              <tbody id="pickTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <div>
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <h2>Mục Tiêu Đơn Lấy</h2>
+                <p>Số đơn cần thêm để chạm mốc tiếp theo</p>
+              </div>
+            </div>
+            <div id="pickMilestoneList"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- TAB 3: ĐƠN HOÀN -->
+    <div class="tab-panel" id="tab-return">
+      <main class="app-container">
+        <section class="card">
+          <div class="overview-box return-theme">
+            <div>
+              <div class="overview-label">Tổng Điểm Đơn Hoàn</div>
+              <div class="overview-value" id="retTotalPoints">0 VNĐ</div>
+              <div class="overview-sub" id="retSummarySub">Chưa có bản ghi</div>
+            </div>
+            <div class="overview-pill" id="retTotalOrders">0 đơn</div>
+          </div>
+
+          <div class="card-head">
+            <div>
+              <h2>Phân Bổ Sản Lượng Đơn Hoàn</h2>
+            </div>
+          </div>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Khối lượng</th>
+                  <th>Sản lượng</th>
+                  <th>Mốc đạt</th>
+                  <th>Tổng điểm</th>
+                </tr>
+              </thead>
+              <tbody id="retTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <div>
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <h2>Mục Tiêu Đơn Hoàn</h2>
+                <p>Số đơn cần thêm để chạm mốc tiếp theo</p>
+              </div>
+            </div>
+            <div id="retMilestoneList"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- TAB 4: NHẬT KÝ -->
+    <div class="tab-panel" id="tab-history">
+      <div class="history-container">
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <h2>Nhật Ký Nhập Liệu</h2>
+              <p id="histCountNote">0 bản ghi trong bộ nhớ máy</p>
+            </div>
+            <button class="btn" style="font-size:11px; padding:4px 8px;" onclick="clearAllHistory()">Xóa toàn bộ</button>
+          </div>
+
+          <div class="history-filter-bar">
+            <button class="filter-btn active" onclick="setHistFilter('all', this)">Tất cả</button>
+            <button class="filter-btn" onclick="setHistFilter('delivery', this)">🚚 Giao</button>
+            <button class="filter-btn" onclick="setHistFilter('pickup', this)">📥 Lấy</button>
+            <button class="filter-btn" onclick="setHistFilter('return', this)">📦 Hoàn</button>
+          </div>
+
+          <div id="historyEntries"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NHẬP LIỆU -->
+<div class="modal-shade" id="entryModal">
+  <div class="modal-box">
+    <div class="modal-box-head">
+      <h3>Nhập Sản Lượng Ngày</h3>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom: 12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <input type="file" id="ocrFileInput" accept="image/*" multiple style="display:none" onchange="handleImageScan(this)">
+        <button type="button" class="btn" style="background:#0ea5e9; border-color:#0ea5e9; color:#fff;" onclick="document.getElementById('ocrFileInput').click()">
+          📷 Quét từ ảnh chụp
+        </button>
+        <span style="font-size:11px; color:var(--text-muted);">(Chọn cùng lúc nhiều ảnh Giao / Lấy / Trả)</span>
+      </div>
+
+      <div class="scan-status-banner" id="scanStatusBanner">
+        <span id="scanStatusText">Đang đọc ảnh...</span>
+      </div>
+
+      <div style="margin-bottom: 12px; max-width: 200px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:4px;">Ngày ghi nhận:</label>
+        <input type="date" id="inputDate" class="input-control">
+      </div>
+      
+      <!-- HÀNG 1: ĐƠN GIAO -->
+      <div class="modal-section-card card-del">
+        <div class="modal-section-title">
+          <span>🚚 HÀNG 1: SẢN LƯỢNG ĐƠN GIAO</span>
+        </div>
+        <div class="weights-horizontal-grid">
+          <div class="weight-input-item"><label>>0 - 2 kg</label><input type="number" inputmode="numeric" id="del_inp_0_2" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>2 - 4 kg</label><input type="number" inputmode="numeric" id="del_inp_2_4" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>4 - 6 kg</label><input type="number" inputmode="numeric" id="del_inp_4_6" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>6 - 8 kg</label><input type="number" inputmode="numeric" id="del_inp_6_8" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>8 - 10 kg</label><input type="number" inputmode="numeric" id="del_inp_8_10" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>10 - 12 kg</label><input type="number" inputmode="numeric" id="del_inp_10_12" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>12 - 15 kg</label><input type="number" inputmode="numeric" id="del_inp_12_15" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>15 kg</label><input type="number" inputmode="numeric" id="del_inp_over_15" class="input-control" value="0" min="0"></div>
+        </div>
+      </div>
+
+      <!-- HÀNG 2: ĐƠN LẤY -->
+      <div class="modal-section-card card-pick">
+        <div class="modal-section-title">
+          <span>📥 HÀNG 2: SẢN LƯỢNG ĐƠN LẤY</span>
+        </div>
+        <div class="weights-horizontal-grid">
+          <div class="weight-input-item"><label>>0 - 2 kg</label><input type="number" inputmode="numeric" id="pick_inp_0_2" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>2 - 4 kg</label><input type="number" inputmode="numeric" id="pick_inp_2_4" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>4 - 6 kg</label><input type="number" inputmode="numeric" id="pick_inp_4_6" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>6 - 8 kg</label><input type="number" inputmode="numeric" id="pick_inp_6_8" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>8 - 10 kg</label><input type="number" inputmode="numeric" id="pick_inp_8_10" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>10 - 12 kg</label><input type="number" inputmode="numeric" id="pick_inp_10_12" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>12 - 15 kg</label><input type="number" inputmode="numeric" id="pick_inp_12_15" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>15 kg</label><input type="number" inputmode="numeric" id="pick_inp_over_15" class="input-control" value="0" min="0"></div>
+        </div>
+      </div>
+
+      <!-- HÀNG 3: ĐƠN HOÀN -->
+      <div class="modal-section-card card-ret">
+        <div class="modal-section-title">
+          <span>📦 HÀNG 3: SẢN LƯỢNG ĐƠN HOÀN</span>
+        </div>
+        <div class="weights-horizontal-grid">
+          <div class="weight-input-item"><label>>0 - 2 kg</label><input type="number" inputmode="numeric" id="ret_inp_0_2" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>2 - 4 kg</label><input type="number" inputmode="numeric" id="ret_inp_2_4" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>4 - 6 kg</label><input type="number" inputmode="numeric" id="ret_inp_4_6" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>6 - 8 kg</label><input type="number" inputmode="numeric" id="ret_inp_6_8" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>8 - 10 kg</label><input type="number" inputmode="numeric" id="ret_inp_8_10" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>10 - 12 kg</label><input type="number" inputmode="numeric" id="ret_inp_10_12" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>12 - 15 kg</label><input type="number" inputmode="numeric" id="ret_inp_12_15" class="input-control" value="0" min="0"></div>
+          <div class="weight-input-item"><label>>15 kg</label><input type="number" inputmode="numeric" id="ret_inp_over_15" class="input-control" value="0" min="0"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-box-foot">
+      <button class="btn" onclick="closeModal()">Hủy</button>
+      <button class="btn btn-primary" onclick="saveRecord()">Lưu dữ liệu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function initTheme() {
+  const savedTheme = localStorage.getItem('spx_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeBtnUI(savedTheme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('spx_theme', newTheme);
+  updateThemeBtnUI(newTheme);
+}
+
+function updateThemeBtnUI(theme) {
+  const icon = document.getElementById('themeIcon');
+  const text = document.getElementById('themeText');
+  if (theme === 'dark') {
+    icon.innerText = '☀️';
+    text.innerText = 'Sáng';
+  } else {
+    icon.innerText = '🌙';
+    text.innerText = 'Tối';
+  }
+}
+
+initTheme();
+
+// 1. DỮ LIỆU BẢNG 5: ĐƠN GIAO (94 MỐC - ĐƠN VỊ VNĐ)
+const TABLE_5_DATA = [
+  { min: 1, max: 15, range: "1 - 15", pts: [25000, 60000, 60000, 60000, 70000, 90000, 110000, 120000] },
+  { min: 15, max: 30, range: "15 - 30", pts: [50000, 110000, 120000, 120000, 150000, 180000, 220000, 240000] },
+  { min: 30, max: 60, range: "30 - 60", pts: [75000, 170000, 170000, 180000, 220000, 270000, 330000, 350000] },
+  { min: 60, max: 100, range: "60 - 100", pts: [100000, 220000, 230000, 240000, 290000, 360000, 440000, 470000] },
+  { min: 100, max: 150, range: "100 - 150", pts: [125000, 280000, 290000, 300000, 360000, 450000, 550000, 590000] },
+  { min: 150, max: 200, range: "150 - 200", pts: [175000, 390000, 400000, 420000, 510000, 630000, 770000, 820000] },
+  { min: 200, max: 300, range: "200 - 300", pts: [275000, 610000, 630000, 660000, 800000, 990000, 1210000, 1290000] },
+  { min: 300, max: 400, range: "300 - 400", pts: [350000, 770000, 810000, 840000, 1020000, 1260000, 1540000, 1650000] },
+  { min: 400, max: 500, range: "400 - 500", pts: [525000, 1160000, 1210000, 1260000, 1520000, 1890000, 2310000, 2470000] },
+  { min: 500, max: 600, range: "500 - 600", pts: [675000, 1490000, 1550000, 1620000, 1960000, 2430000, 2970000, 3170000] },
+  { min: 600, max: 700, range: "600 - 700", pts: [800000, 1760000, 1840000, 1920000, 2320000, 2880000, 3520000, 3760000] },
+  { min: 700, max: 800, range: "700 - 800", pts: [950000, 2000000, 2190000, 2280000, 2760000, 3420000, 4180000, 4470000] },
+  { min: 800, max: 900, range: "800 - 900", pts: [1125000, 2125000, 2375000, 2475000, 3150000, 4050000, 4950000, 5300000] },
+  { min: 900, max: 1000, range: "900 - 1,000", pts: [1400000, 2525000, 2950000, 3075000, 3925000, 5050000, 6150000, 6575000] },
+  { min: 1000, max: 1100, range: "1,000 - 1,100", pts: [1800000, 3250000, 3775000, 3950000, 5050000, 6475000, 7925000, 8450000] },
+  { min: 1100, max: 1200, range: "1,100 - 1,200", pts: [2075000, 3725000, 4350000, 4575000, 5800000, 7475000, 9125000, 9750000] },
+  { min: 1200, max: 1300, range: "1,200 - 1,300", pts: [2275000, 4100000, 4775000, 5000000, 6375000, 8200000, 10000000, 10700000] },
+  { min: 1300, max: 1400, range: "1,300 - 1,400", pts: [2475000, 4450000, 5200000, 5450000, 6925000, 8900000, 10900000, 11625000] },
+  { min: 1400, max: 1500, range: "1,400 - 1,500", pts: [2625000, 4725000, 5525000, 5775000, 7350000, 9450000, 11550000, 12350000] },
+  { min: 1500, max: 1600, range: "1,500 - 1,600", pts: [2800000, 5050000, 5875000, 6150000, 7850000, 10075000, 12325000, 13150000] },
+  { min: 1600, max: 1700, range: "1,600 - 1,700", pts: [2900000, 5225000, 6100000, 6375000, 8125000, 10450000, 12750000, 13625000] },
+  { min: 1700, max: 1800, range: "1,700 - 1,800", pts: [3175000, 5725000, 6675000, 6975000, 8900000, 11425000, 13975000, 14925000] },
+  { min: 1800, max: 1900, range: "1,800 - 1,900", pts: [3450000, 6200000, 7250000, 7600000, 9650000, 12425000, 15175000, 16225000] },
+  { min: 1900, max: 2000, range: "1,900 - 2,000", pts: [3750000, 6750000, 7875000, 8250000, 10500000, 13500000, 16500000, 17625000] },
+  { min: 2000, max: 2100, range: "2,000 - 2,100", pts: [4050000, 7300000, 8500000, 8900000, 11350000, 14575000, 17825000, 19025000] },
+  { min: 2100, max: 2200, range: "2,100 - 2,200", pts: [4275000, 7700000, 8975000, 9400000, 11975000, 15400000, 18800000, 20100000] },
+  { min: 2200, max: 2300, range: "2,200 - 2,300", pts: [4425000, 7975000, 9300000, 9725000, 12400000, 15925000, 19475000, 20800000] },
+  { min: 2300, max: 2400, range: "2,300 - 2,400", pts: [4650000, 8375000, 9775000, 10225000, 13025000, 16750000, 20450000, 21850000] },
+  { min: 2400, max: 2500, range: "2,400 - 2,500", pts: [4825000, 8675000, 10125000, 10625000, 13500000, 17375000, 21225000, 22675000] },
+  { min: 2500, max: 2600, range: "2,500 - 2,600", pts: [5075000, 9125000, 10650000, 11175000, 14200000, 18275000, 22325000, 23850000] },
+  { min: 2600, max: 2700, range: "2,600 - 2,700", pts: [5275000, 9500000, 11075000, 11600000, 14775000, 19000000, 23200000, 24800000] },
+  { min: 2700, max: 2800, range: "2,700 - 2,800", pts: [5625000, 10125000, 11825000, 12375000, 15750000, 20250000, 24750000, 26450000] },
+  { min: 2800, max: 2900, range: "2,800 - 2,900", pts: [6000000, 10800000, 12600000, 13200000, 16800000, 21600000, 26400000, 28200000] },
+  { min: 2900, max: 3000, range: "2,900 - 3,000", pts: [6300000, 11350000, 13225000, 13850000, 17650000, 22675000, 27725000, 29600000] },
+  { min: 3000, max: 3100, range: "3,000 - 3,100", pts: [6600000, 11875000, 13850000, 14525000, 18475000, 23750000, 29050000, 31025000] },
+  { min: 3100, max: 3200, range: "3,100 - 3,200", pts: [6875000, 12375000, 14450000, 15125000, 19250000, 24750000, 30250000, 32325000] },
+  { min: 3200, max: 3300, range: "3,200 - 3,300", pts: [7125000, 12825000, 14975000, 15675000, 19950000, 25650000, 31350000, 33500000] },
+  { min: 3300, max: 3400, range: "3,300 - 3,400", pts: [7400000, 13325000, 15550000, 16275000, 20725000, 26650000, 32550000, 34775000] },
+  { min: 3400, max: 3500, range: "3,400 - 3,500", pts: [7725000, 13900000, 16225000, 17000000, 21625000, 27800000, 34000000, 36300000] },
+  { min: 3500, max: 3600, range: "3,500 - 3,600", pts: [8050000, 14500000, 16900000, 17700000, 22550000, 28975000, 35425000, 37825000] },
+  { min: 3600, max: 3700, range: "3,600 - 3,700", pts: [8525000, 15350000, 17900000, 18750000, 23875000, 30700000, 37500000, 40075000] },
+  { min: 3700, max: 3800, range: "3,700 - 3,800", pts: [8850000, 15925000, 18575000, 19475000, 24775000, 31850000, 38950000, 41600000] },
+  { min: 3800, max: 3900, range: "3,800 - 3,900", pts: [9200000, 16550000, 19325000, 20250000, 25750000, 33125000, 40475000, 43250000] },
+  { min: 3900, max: 4000, range: "3,900 - 4,000", pts: [9475000, 17050000, 19900000, 20850000, 26525000, 34100000, 41700000, 44525000] },
+  { min: 4000, max: 4100, range: "4,000 - 4,100", pts: [9625000, 17325000, 20225000, 21175000, 26950000, 34650000, 42350000, 45250000] },
+  { min: 4100, max: 4200, range: "4,100 - 4,200", pts: [9975000, 17950000, 20950000, 21950000, 27925000, 35900000, 43900000, 46875000] },
+  { min: 4200, max: 4300, range: "4,200 - 4,300", pts: [10550000, 19000000, 22150000, 23200000, 29550000, 37975000, 46425000, 49575000] },
+  { min: 4300, max: 4400, range: "4,300 - 4,400", pts: [10850000, 19525000, 22775000, 23875000, 30375000, 39050000, 47750000, 50000000] },
+  { min: 4400, max: 4500, range: "4,400 - 4,500", pts: [11075000, 19925000, 23250000, 24375000, 31000000, 39875000, 48725000, 50000000] },
+  { min: 4500, max: 4600, range: "4,500 - 4,600", pts: [11350000, 20425000, 23825000, 24975000, 31775000, 40850000, 49950000, 50000000] },
+  { min: 4600, max: 4700, range: "4,600 - 4,700", pts: [11475000, 20650000, 24100000, 25250000, 32125000, 41300000, 50000000, 50000000] },
+  { min: 4700, max: 4800, range: "4,700 - 4,800", pts: [11875000, 21375000, 24950000, 26125000, 33250000, 42750000, 50000000, 50000000] },
+  { min: 4800, max: 4900, range: "4,800 - 4,900", pts: [12300000, 22150000, 25825000, 27050000, 34450000, 44275000, 50000000, 50000000] },
+  { min: 4900, max: 5000, range: "4,900 - 5,000", pts: [12625000, 22725000, 26525000, 27775000, 35350000, 45450000, 50000000, 50000000] },
+  { min: 5000, max: 5100, range: "5,000 - 5,100", pts: [12750000, 22950000, 26775000, 28050000, 35700000, 45900000, 50000000, 50000000] },
+  { min: 5100, max: 5200, range: "5,100 - 5,200", pts: [13075000, 23525000, 27450000, 28775000, 36600000, 47075000, 50000000, 50000000] },
+  { min: 5200, max: 5300, range: "5,200 - 5,300", pts: [13275000, 23900000, 27875000, 29200000, 37175000, 47800000, 50000000, 50000000] },
+  { min: 5300, max: 5400, range: "5,300 - 5,400", pts: [13600000, 24475000, 28550000, 29925000, 38075000, 48950000, 50000000, 50000000] },
+  { min: 5400, max: 5500, range: "5,400 - 5,500", pts: [13675000, 24625000, 28725000, 30075000, 38300000, 49225000, 50000000, 50000000] },
+  { min: 5500, max: 5600, range: "5,500 - 5,600", pts: [13975000, 25150000, 29350000, 30750000, 39125000, 50000000, 50000000, 50000000] },
+  { min: 5600, max: 5700, range: "5,600 - 5,700", pts: [14200000, 25550000, 29825000, 31250000, 39750000, 50000000, 50000000, 50000000] },
+  { min: 5700, max: 5800, range: "5,700 - 5,800", pts: [14525000, 26150000, 30500000, 31950000, 40675000, 50000000, 50000000, 50000000] },
+  { min: 5800, max: 5900, range: "5,800 - 5,900", pts: [14675000, 26425000, 30825000, 32275000, 41100000, 50000000, 50000000, 50000000] },
+  { min: 5900, max: 6000, range: "5,900 - 6,000", pts: [15000000, 27000000, 31500000, 33000000, 42000000, 50000000, 50000000, 50000000] },
+  { min: 6000, max: 6100, range: "6,000 - 6,100", pts: [15150000, 27275000, 31825000, 33325000, 42425000, 50000000, 50000000, 50000000] },
+  { min: 6100, max: 6200, range: "6,100 - 6,200", pts: [15475000, 27850000, 32500000, 34050000, 43325000, 50000000, 50000000, 50000000] },
+  { min: 6200, max: 6300, range: "6,200 - 6,300", pts: [15650000, 28175000, 32875000, 34425000, 43825000, 50000000, 50000000, 50000000] },
+  { min: 6300, max: 6400, range: "6,300 - 6,400", pts: [15975000, 28750000, 33550000, 35150000, 44725000, 50000000, 50000000, 50000000] },
+  { min: 6400, max: 6500, range: "6,400 - 6,500", pts: [16200000, 29150000, 34025000, 35650000, 45350000, 50000000, 50000000, 50000000] },
+  { min: 6500, max: 6600, range: "6,500 - 6,600", pts: [16525000, 29750000, 34700000, 36350000, 46275000, 50000000, 50000000, 50000000] },
+  { min: 6600, max: 6700, range: "6,600 - 6,700", pts: [16650000, 29975000, 34975000, 36625000, 46625000, 50000000, 50000000, 50000000] },
+  { min: 6700, max: 6800, range: "6,700 - 6,800", pts: [16950000, 30500000, 35600000, 37300000, 47450000, 50000000, 50000000, 50000000] },
+  { min: 6800, max: 6900, range: "6,800 - 6,900", pts: [17100000, 30775000, 35900000, 37625000, 47875000, 50000000, 50000000, 50000000] },
+  { min: 6900, max: 7000, range: "6,900 - 7,000", pts: [17375000, 31275000, 36500000, 38225000, 48650000, 50000000, 50000000, 50000000] },
+  { min: 7000, max: 7200, range: "7,000 - 7,200", pts: [17650000, 31775000, 37075000, 38825000, 49425000, 50000000, 50000000, 50000000] },
+  { min: 7200, max: 7400, range: "7,200 - 7,400", pts: [18125000, 32625000, 38075000, 39875000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 7400, max: 7600, range: "7,400 - 7,600", pts: [18550000, 33400000, 38950000, 40800000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 7600, max: 7800, range: "7,600 - 7,800", pts: [19050000, 34300000, 40000000, 41900000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 7800, max: 8000, range: "7,800 - 8,000", pts: [19425000, 34975000, 40800000, 42725000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 8000, max: 8200, range: "8,000 - 8,200", pts: [20025000, 36050000, 42050000, 44050000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 8200, max: 8400, range: "8,200 - 8,400", pts: [20425000, 36775000, 42900000, 44925000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 8400, max: 8700, range: "8,400 - 8,700", pts: [21475000, 38650000, 45100000, 47250000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 8700, max: 9000, range: "8,700 - 9,000", pts: [21925000, 39475000, 46050000, 48225000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 9000, max: 9300, range: "9,000 - 9,300", pts: [22900000, 41225000, 48100000, 50000000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 9300, max: 9600, range: "9,300 - 9,600", pts: [23375000, 42075000, 49100000, 50000000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 9600, max: 9900, range: "9,600 - 9,900", pts: [23925000, 43075000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 9900, max: 10200, range: "9,900 - 10,200", pts: [24875000, 44775000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 10200, max: 10500, range: "10,200 - 10,500", pts: [25400000, 45725000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 10500, max: 10800, range: "10,500 - 10,800", pts: [26325000, 47375000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 10800, max: 11100, range: "10,800 - 11,100", pts: [27400000, 49325000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 11100, max: 11400, range: "11,100 - 11,400", pts: [28125000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 11400, max: 11700, range: "11,400 - 11,700", pts: [28850000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 11700, max: 12000, range: "11,700 - 12,000", pts: [29575000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000] },
+  { min: 12000, max: Infinity, range: "≥ 12,000", pts: [30300000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000] }
+];
+
+// 2. DỮ LIỆU BẢNG 4: ĐƠN LẤY (46 MỐC - ĐƠN VỊ VNĐ)
+const TABLE_4_DATA = [
+  { min: 1, max: 15, range: "1 - 15", pts: [15000, 30000, 30000, 40000, 40000, 50000, 70000, 80000] },
+  { min: 15, max: 30, range: "15 - 30", pts: [25000, 60000, 60000, 60000, 70000, 90000, 110000, 120000] },
+  { min: 30, max: 90, range: "30 - 90", pts: [30000, 70000, 70000, 70000, 90000, 110000, 130000, 140000] },
+  { min: 90, max: 150, range: "90 - 150", pts: [50000, 100000, 100000, 100000, 150000, 175000, 225000, 225000] },
+  { min: 150, max: 300, range: "150 - 300", pts: [90000, 150000, 200000, 200000, 250000, 325000, 400000, 425000] },
+  { min: 300, max: 450, range: "300 - 450", pts: [140000, 250000, 300000, 300000, 400000, 500000, 625000, 650000] },
+  { min: 450, max: 600, range: "450 - 600", pts: [175000, 325000, 375000, 375000, 500000, 625000, 775000, 825000] },
+  { min: 600, max: 750, range: "600 - 750", pts: [225000, 400000, 475000, 500000, 625000, 800000, 1000000, 1050000] },
+  { min: 750, max: 900, range: "750 - 900", pts: [275000, 500000, 575000, 600000, 775000, 1000000, 1200000, 1300000] },
+  { min: 900, max: 1200, range: "900 - 1,200", pts: [325000, 575000, 675000, 725000, 900000, 1175000, 1425000, 1525000] },
+  { min: 1200, max: 1500, range: "1,200 - 1,500", pts: [425000, 775000, 900000, 925000, 1200000, 1525000, 1875000, 2000000] },
+  { min: 1500, max: 1800, range: "1,500 - 1,800", pts: [500000, 900000, 1050000, 1100000, 1400000, 1800000, 2200000, 2350000] },
+  { min: 1800, max: 2100, range: "1,800 - 2,100", pts: [525000, 950000, 1100000, 1150000, 1475000, 1900000, 2300000, 2475000] },
+  { min: 2100, max: 2400, range: "2,100 - 2,400", pts: [600000, 1075000, 1250000, 1325000, 1675000, 2150000, 2650000, 2825000] },
+  { min: 2400, max: 2700, range: "2,400 - 2,700", pts: [675000, 1225000, 1425000, 1475000, 1900000, 2425000, 2975000, 3175000] },
+  { min: 2700, max: 3000, range: "2,700 - 3,000", pts: [750000, 1350000, 1575000, 1650000, 2100000, 2700000, 3300000, 3525000] },
+  { min: 3000, max: 3600, range: "3,000 - 3,600", pts: [850000, 1525000, 1775000, 1875000, 2375000, 3050000, 3750000, 4000000] },
+  { min: 3600, max: 4200, range: "3,600 - 4,200", pts: [1050000, 1900000, 2200000, 2300000, 2950000, 3775000, 4625000, 4925000] },
+  { min: 4200, max: 4800, range: "4,200 - 4,800", pts: [1300000, 2350000, 2725000, 2850000, 3650000, 4675000, 5725000, 6100000] },
+  { min: 4800, max: 5400, range: "4,800 - 5,400", pts: [1575000, 2825000, 3300000, 3475000, 4400000, 5675000, 6925000, 7400000] },
+  { min: 5400, max: 6000, range: "5,400 - 6,000", pts: [1850000, 3325000, 3875000, 4075000, 5175000, 6650000, 8150000, 8700000] },
+  { min: 6000, max: 6600, range: "6,000 - 6,600", pts: [2025000, 3650000, 4250000, 4450000, 5675000, 7300000, 8900000, 9525000] },
+  { min: 6600, max: 8100, range: "6,600 - 8,100", pts: [2350000, 4225000, 4925000, 5175000, 6575000, 8450000, 10350000, 11050000] },
+  { min: 8100, max: 9600, range: "8,100 - 9,600", pts: [2775000, 5000000, 5825000, 6100000, 7775000, 10000000, 12200000, 13050000] },
+  { min: 9600, max: 11100, range: "9,600 - 11,100", pts: [3350000, 6025000, 7025000, 7375000, 9375000, 12050000, 14750000, 15750000] },
+  { min: 11100, max: 12600, range: "11,100 - 12,600", pts: [3900000, 7025000, 8200000, 8575000, 10925000, 14050000, 17150000, 18325000] },
+  { min: 12600, max: 14100, range: "12,600 - 14,100", pts: [4375000, 7875000, 9200000, 9625000, 12250000, 15750000, 19250000, 20575000] },
+  { min: 14100, max: 15600, range: "14,100 - 15,600", pts: [4950000, 8900000, 10400000, 10900000, 13850000, 17825000, 21775000, 23275000] },
+  { min: 15600, max: 17100, range: "15,600 - 17,100", pts: [5550000, 10000000, 11650000, 12200000, 15550000, 19975000, 24425000, 26075000] },
+  { min: 17100, max: 18600, range: "17,100 - 18,600", pts: [6225000, 11200000, 13075000, 13700000, 17425000, 22400000, 27400000, 29250000] },
+  { min: 18600, max: 21000, range: "18,600 - 21,000", pts: [7200000, 12950000, 15125000, 15850000, 20150000, 25925000, 31675000, 33850000] },
+  { min: 21000, max: 23400, range: "21,000 - 23,400", pts: [8325000, 14975000, 17475000, 18325000, 23300000, 29975000, 36625000, 39125000] },
+  { min: 23400, max: 25800, range: "23,400 - 25,800", pts: [9450000, 17000000, 19850000, 20800000, 26450000, 34025000, 41575000, 44425000] },
+  { min: 25800, max: 28200, range: "25,800 - 28,200", pts: [10975000, 19750000, 23050000, 24150000, 30725000, 39500000, 48300000, 51575000] },
+  { min: 28200, max: 30600, range: "28,200 - 30,600", pts: [12250000, 22050000, 25725000, 26950000, 34300000, 44100000, 53900000, 57575000] },
+  { min: 30600, max: 33000, range: "30,600 - 33,000", pts: [13200000, 23750000, 27725000, 29050000, 36950000, 47525000, 58075000, 62050000] },
+  { min: 33000, max: 35400, range: "33,000 - 35,400", pts: [14150000, 25475000, 29725000, 31125000, 39625000, 50950000, 62250000, 66500000] },
+  { min: 35400, max: 39400, range: "35,400 - 39,400", pts: [15450000, 27800000, 32450000, 34000000, 43250000, 55625000, 67975000, 72625000] },
+  { min: 39400, max: 43400, range: "39,400 - 43,400", pts: [17050000, 30700000, 35800000, 37500000, 47750000, 61375000, 75025000, 80125000] },
+  { min: 43400, max: 47400, range: "43,400 - 47,400", pts: [18650000, 33575000, 39175000, 41025000, 52225000, 67150000, 82050000, 87650000] },
+  { min: 47400, max: 51400, range: "47,400 - 51,400", pts: [20250000, 36450000, 42525000, 44550000, 56700000, 72900000, 89100000, 95175000] },
+  { min: 51400, max: 57400, range: "51,400 - 57,400", pts: [22450000, 40400000, 47150000, 49400000, 62850000, 80825000, 98775000, 100000000] },
+  { min: 57400, max: 63400, range: "57,400 - 63,400", pts: [24850000, 44725000, 52175000, 54675000, 69575000, 89450000, 100000000, 100000000] },
+  { min: 63400, max: 69400, range: "63,400 - 69,400", pts: [27250000, 49050000, 57225000, 59950000, 76300000, 98100000, 100000000, 100000000] },
+  { min: 69400, max: 75400, range: "69,400 - 75,400", pts: [29650000, 53375000, 62275000, 65225000, 83025000, 100000000, 100000000, 100000000] },
+  { min: 75400, max: Infinity, range: "≥ 75,400", pts: [33500000, 60300000, 70350000, 73700000, 93800000, 100000000, 100000000, 100000000] }
+];
+
+// 3. DỮ LIỆU BẢNG 6: ĐƠN HOÀN (46 MỐC - ĐƠN VỊ VNĐ)
+const TABLE_6_DATA = [
+  { min: 1, max: 15, range: "1 - 15", pts: [15000, 30000, 30000, 40000, 40000, 50000, 70000, 70000] },
+  { min: 15, max: 30, range: "15 - 30", pts: [25000, 60000, 60000, 60000, 70000, 90000, 110000, 120000] },
+  { min: 30, max: 90, range: "30 - 90", pts: [30000, 70000, 70000, 70000, 90000, 110000, 130000, 140000] },
+  { min: 90, max: 150, range: "90 - 150", pts: [50000, 100000, 100000, 100000, 150000, 175000, 225000, 225000] },
+  { min: 150, max: 300, range: "150 - 300", pts: [90000, 150000, 200000, 200000, 250000, 325000, 400000, 425000] },
+  { min: 300, max: 450, range: "300 - 450", pts: [140000, 250000, 300000, 300000, 400000, 500000, 625000, 650000] },
+  { min: 450, max: 600, range: "450 - 600", pts: [175000, 325000, 375000, 375000, 500000, 625000, 775000, 825000] },
+  { min: 600, max: 750, range: "600 - 750", pts: [225000, 400000, 475000, 500000, 625000, 800000, 1000000, 1050000] },
+  { min: 750, max: 900, range: "750 - 900", pts: [275000, 500000, 575000, 600000, 775000, 1000000, 1200000, 1300000] },
+  { min: 900, max: 1200, range: "900 - 1,200", pts: [325000, 575000, 675000, 725000, 900000, 1175000, 1425000, 1525000] },
+  { min: 1200, max: 1500, range: "1,200 - 1,500", pts: [425000, 775000, 900000, 925000, 1200000, 1525000, 1875000, 2000000] },
+  { min: 1500, max: 1800, range: "1,500 - 1,800", pts: [500000, 900000, 1050000, 1100000, 1400000, 1800000, 2200000, 2350000] },
+  { min: 1800, max: 2100, range: "1,800 - 2,100", pts: [525000, 950000, 1100000, 1150000, 1475000, 1900000, 2300000, 2475000] },
+  { min: 2100, max: 2400, range: "2,100 - 2,400", pts: [600000, 1075000, 1250000, 1325000, 1675000, 2150000, 2650000, 2825000] },
+  { min: 2400, max: 2700, range: "2,400 - 2,700", pts: [675000, 1225000, 1425000, 1475000, 1900000, 2425000, 2975000, 3175000] },
+  { min: 2700, max: 3000, range: "2,700 - 3,000", pts: [750000, 1350000, 1575000, 1650000, 2100000, 2700000, 3300000, 3525000] },
+  { min: 3000, max: 3600, range: "3,000 - 3,600", pts: [850000, 1525000, 1775000, 1875000, 2375000, 3050000, 3750000, 4000000] },
+  { min: 3600, max: 4200, range: "3,600 - 4,200", pts: [1050000, 1900000, 2200000, 2300000, 2950000, 3775000, 4625000, 4925000] },
+  { min: 4200, max: 4800, range: "4,200 - 4,800", pts: [1300000, 2350000, 2725000, 2850000, 3650000, 4675000, 5725000, 6100000] },
+  { min: 4800, max: 5400, range: "4,800 - 5,400", pts: [1575000, 2825000, 3300000, 3475000, 4400000, 5675000, 6925000, 7400000] },
+  { min: 5400, max: 6000, range: "5,400 - 6,000", pts: [1850000, 3325000, 3875000, 4075000, 5175000, 6650000, 8150000, 8700000] },
+  { min: 6000, max: 6600, range: "6,000 - 6,600", pts: [2025000, 3650000, 4250000, 4450000, 5675000, 7300000, 8900000, 9525000] },
+  { min: 6600, max: 8100, range: "6,600 - 8,100", pts: [2350000, 4225000, 4925000, 5175000, 6575000, 8450000, 10350000, 11050000] },
+  { min: 8100, max: 9600, range: "8,100 - 9,600", pts: [2775000, 5000000, 5825000, 6100000, 7775000, 10000000, 12200000, 13050000] },
+  { min: 9600, max: 11100, range: "9,600 - 11,100", pts: [3350000, 6025000, 7025000, 7375000, 9375000, 12050000, 14750000, 15750000] },
+  { min: 11100, max: 12600, range: "11,100 - 12,600", pts: [3900000, 7025000, 8200000, 8575000, 10925000, 14050000, 17150000, 18325000] },
+  { min: 12600, max: 14100, range: "12,600 - 14,100", pts: [4375000, 7875000, 9200000, 9625000, 12250000, 15750000, 19250000, 20575000] },
+  { min: 14100, max: 15600, range: "14,100 - 15,600", pts: [4950000, 8900000, 10400000, 10900000, 13850000, 17825000, 21775000, 23275000] },
+  { min: 15600, max: 17100, range: "15,600 - 17,100", pts: [5550000, 10000000, 11650000, 12200000, 15550000, 19975000, 24425000, 26075000] },
+  { min: 17100, max: 18600, range: "17,100 - 18,600", pts: [6225000, 11200000, 13075000, 13700000, 17425000, 22400000, 27400000, 29250000] },
+  { min: 18600, max: 21000, range: "18,600 - 21,000", pts: [7200000, 12950000, 15125000, 15850000, 20150000, 25925000, 31675000, 33850000] },
+  { min: 21000, max: 23400, range: "21,000 - 23,400", pts: [8325000, 14975000, 17475000, 18325000, 23300000, 29975000, 36625000, 39125000] },
+  { min: 23400, max: 25800, range: "23,400 - 25,800", pts: [9450000, 17000000, 19850000, 20800000, 26450000, 34025000, 41575000, 44425000] },
+  { min: 25800, max: 28200, range: "25,800 - 28,200", pts: [10975000, 19750000, 23050000, 24150000, 30725000, 39500000, 48300000, 51575000] },
+  { min: 28200, max: 30600, range: "28,200 - 30,600", pts: [12250000, 22050000, 25725000, 26950000, 34300000, 44100000, 53900000, 57575000] },
+  { min: 30600, max: 33000, range: "30,600 - 33,000", pts: [13200000, 23750000, 27725000, 29050000, 36950000, 47525000, 58075000, 62050000] },
+  { min: 33000, max: 35400, range: "33,000 - 35,400", pts: [14150000, 25475000, 29725000, 31125000, 39625000, 50950000, 62250000, 66500000] },
+  { min: 35400, max: 39400, range: "35,400 - 39,400", pts: [15450000, 27800000, 32450000, 34000000, 43250000, 55625000, 67975000, 72625000] },
+  { min: 39400, max: 43400, range: "39,400 - 43,400", pts: [17050000, 30700000, 35800000, 37500000, 47750000, 61375000, 75025000, 80125000] },
+  { min: 43400, max: 47400, range: "43,400 - 47,400", pts: [18650000, 33575000, 39175000, 41025000, 52225000, 67150000, 82050000, 87650000] },
+  { min: 47400, max: 51400, range: "47,400 - 51,400", pts: [20250000, 36450000, 42525000, 44550000, 56700000, 72900000, 89100000, 95175000] },
+  { min: 51400, max: 57400, range: "51,400 - 57,400", pts: [22450000, 40400000, 47150000, 49400000, 62850000, 80825000, 98775000, 100000000] },
+  { min: 57400, max: 63400, range: "57,400 - 63,400", pts: [24850000, 44725000, 52175000, 54675000, 69575000, 89450000, 100000000, 100000000] },
+  { min: 63400, max: 69400, range: "63,400 - 69,400", pts: [27250000, 49050000, 57225000, 59950000, 76300000, 98100000, 100000000, 100000000] },
+  { min: 69400, max: 75400, range: "69,400 - 75,400", pts: [29650000, 53375000, 62275000, 65225000, 83025000, 100000000, 100000000, 100000000] },
+  { min: 75400, max: Infinity, range: "≥ 75,400", pts: [33500000, 60300000, 70350000, 73700000, 93800000, 100000000, 100000000, 100000000] }
+];
+
+const WEIGHT_LABELS = [">0 - 2 kg", ">2 - 4 kg", ">4 - 6 kg", ">6 - 8 kg", ">8 - 10 kg", ">10 - 12 kg", ">12 - 15 kg", ">15 kg"];
+const WEIGHT_KEYS = ['w0_2', 'w2_4', 'w4_6', 'w6_8', 'w8_10', 'w10_12', 'w12_15', 'wover_15'];
+
+let appData = JSON.parse(localStorage.getItem('spx_dual_records')) || {
+  delivery: [],
+  pickup: [],
+  return: []
+};
+
+if (!appData.return) appData.return = [];
+
+let userRank = localStorage.getItem('spx_user_rank') || 'none';
+let currentActiveTab = 'overview';
+let currentHistFilter = 'all';
+let currentOverviewFilter = 'all';
+
+function formatPts(n) {
+  return new Intl.NumberFormat('vi-VN').format(Math.round(n)) + ' VNĐ';
+}
+
+function getTodayIso() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function formatDateDisplay(isoDate) {
+  if (!isoDate) return '';
+  const parts = isoDate.split('-');
+  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  return isoDate;
+}
+
+function switchMainTab(tabId, el) {
+  currentActiveTab = tabId;
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  el.classList.add('active');
+
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`tab-${tabId}`).classList.add('active');
+
+  if (tabId === 'history') renderHistory();
+}
+
+function setOverviewFilter(filter, el) {
+  currentOverviewFilter = filter;
+  const parent = el.parentElement;
+  parent.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  
+  const items = document.querySelectorAll('#overviewMilestoneList .suggestion-item');
+  items.forEach(item => {
+    if (filter === 'all') {
+      item.style.display = 'flex';
+    } else if (filter === 'del') {
+      item.style.display = item.classList.contains('sugg-del') ? 'flex' : 'none';
+    } else if (filter === 'pick') {
+      item.style.display = item.classList.contains('sugg-pick') ? 'flex' : 'none';
+    } else if (filter === 'ret') {
+      item.style.display = item.classList.contains('sugg-ret') ? 'flex' : 'none';
+    }
+  });
+}
+
+function lookupTier(orders, colIdx, tableData) {
+  if (orders === 0) {
+    return {
+      matched: { range: "-", pt: 0, maxA: 0 },
+      next: { range: tableData[0].range, min: tableData[0].min, pt: tableData[0].pts[colIdx] },
+      pct: 0
+    };
+  }
+  for (let i = 0; i < tableData.length; i++) {
+    const row = tableData[i];
+    if (orders >= row.min && orders < row.max) {
+      const nextRow = tableData[i + 1] || null;
+      const span = row.max - row.min;
+      const pct = Math.min(100, Math.round(((orders - row.min) / span) * 100));
+      return {
+        matched: { range: row.range, pt: row.pts[colIdx], maxA: row.max },
+        next: nextRow ? { range: nextRow.range, min: nextRow.min, pt: nextRow.pts[colIdx] } : null,
+        pct: pct
+      };
+    }
+  }
+  const lastRow = tableData[tableData.length - 1];
+  return {
+    matched: { range: lastRow.range, pt: lastRow.pts[colIdx], maxA: lastRow.max },
+    next: null,
+    pct: 100
+  };
+}
+
+function onRankChange(val) {
+  userRank = val;
+  localStorage.setItem('spx_user_rank', val);
+  updateAllViews();
+}
+
+function calculateWorkAndDistance(daysInMonth) {
+  const stdWorkingDays = Math.max(1, daysInMonth - 4);
+  const dailyBaseSalary = 5310000 / stdWorkingDays;
+  const dailyDistanceFee = 1000000 / stdWorkingDays;
+
+  // Gom nhóm đơn quy đổi theo từng ngày ghi nhận
+  const dailyOrdersMap = {};
+
+  const addOrdersToDate = (records, factor) => {
+    (records || []).forEach(r => {
+      const d = r.date || 'unknown';
+      if (!dailyOrdersMap[d]) dailyOrdersMap[d] = 0;
+      let count = 0;
+      WEIGHT_KEYS.forEach(k => {
+        count += parseInt(r.weights[k], 10) || 0;
+      });
+      dailyOrdersMap[d] += count * factor;
+    });
+  };
+
+  addOrdersToDate(appData.delivery, 1.0);     // 1 đơn giao = 1
+  addOrdersToDate(appData.return, 1.0);       // 1 đơn hoàn = 1
+  addOrdersToDate(appData.pickup, 1.0 / 6.0); // 6 đơn lấy = 1 đơn quy đổi
+
+  let fullWorkDays = 0;
+  let halfWorkDays = 0;
+
+  Object.keys(dailyOrdersMap).forEach(d => {
+    const pts = dailyOrdersMap[d];
+    if (pts >= 60) {
+      fullWorkDays += 1;
+    } else if (pts >= 30) {
+      halfWorkDays += 1;
+    }
+  });
+
+  const totalEffectiveWorkDays = fullWorkDays + (halfWorkDays * 0.5);
+  const totalBaseSalary = totalEffectiveWorkDays * dailyBaseSalary;
+  const totalDistance = totalEffectiveWorkDays * dailyDistanceFee;
+
+  return {
+    fullWorkDays,
+    halfWorkDays,
+    totalEffectiveWorkDays,
+    totalCombined: totalBaseSalary + totalDistance
+  };
+}
+
+function updateAllViews() {
+  // Đồng bộ lại select thứ hạng
+  const rankEl = document.getElementById('riderRankSelect');
+  if (rankEl) rankEl.value = userRank;
+
+  const delAgg = [0, 0, 0, 0, 0, 0, 0, 0];
+  let delGrandOrders = 0;
+  appData.delivery.forEach(r => {
+    WEIGHT_KEYS.forEach((k, idx) => {
+      const val = parseInt(r.weights[k], 10) || 0;
+      delAgg[idx] += val;
+      delGrandOrders += val;
+    });
+  });
+
+  const pickAgg = [0, 0, 0, 0, 0, 0, 0, 0];
+  let pickGrandOrders = 0;
+  appData.pickup.forEach(r => {
+    WEIGHT_KEYS.forEach((k, idx) => {
+      const val = parseInt(r.weights[k], 10) || 0;
+      pickAgg[idx] += val;
+      pickGrandOrders += val;
+    });
+  });
+
+  const retAgg = [0, 0, 0, 0, 0, 0, 0, 0];
+  let retGrandOrders = 0;
+  (appData.return || []).forEach(r => {
+    WEIGHT_KEYS.forEach((k, idx) => {
+      const val = parseInt(r.weights[k], 10) || 0;
+      retAgg[idx] += val;
+      retGrandOrders += val;
+    });
+  });
+
+  let delGrandPoints = 0;
+  let pickGrandPoints = 0;
+  let retGrandPoints = 0;
+
+  const delTbody = document.getElementById('delTableBody');
+  const delSuggBox = document.getElementById('delMilestoneList');
+  delTbody.innerHTML = '';
+  delSuggBox.innerHTML = '';
+
+  const pickTbody = document.getElementById('pickTableBody');
+  const pickSuggBox = document.getElementById('pickMilestoneList');
+  pickTbody.innerHTML = '';
+  pickSuggBox.innerHTML = '';
+
+  const retTbody = document.getElementById('retTableBody');
+  const retSuggBox = document.getElementById('retMilestoneList');
+  retTbody.innerHTML = '';
+  retSuggBox.innerHTML = '';
+
+  const overviewSuggBox = document.getElementById('overviewMilestoneList');
+  overviewSuggBox.innerHTML = '';
+
+  for (let colIdx = 0; colIdx < 8; colIdx++) {
+    const dOrders = delAgg[colIdx];
+    const pOrders = pickAgg[colIdx];
+    const rOrders = retAgg[colIdx];
+
+    const dTier = lookupTier(dOrders, colIdx, TABLE_5_DATA);
+    const pTier = lookupTier(pOrders, colIdx, TABLE_4_DATA);
+    const rTier = lookupTier(rOrders, colIdx, TABLE_6_DATA);
+
+    delGrandPoints += dTier.matched.pt;
+    pickGrandPoints += pTier.matched.pt;
+    retGrandPoints += rTier.matched.pt;
+
+    // 1. Tab Đơn Giao
+    const dTr = document.createElement('tr');
+    dTr.innerHTML = `
+      <td class="weight-name">${WEIGHT_LABELS[colIdx]}</td>
+      <td class="order-num delivery-num ${dOrders === 0 ? 'zero' : ''}">
+        ${dOrders.toLocaleString('vi-VN')}
+        <div class="bar-container"><div class="bar-fill del" style="width:${dTier.pct}%"></div></div>
+      </td>
+      <td style="color:var(--text-muted); font-size:11px;">${dTier.matched.range}</td>
+      <td class="points-badge ${dOrders === 0 ? 'zero' : ''}">${formatPts(dTier.matched.pt)}</td>
+    `;
+    delTbody.appendChild(dTr);
+
+    if (dOrders > 0 && dTier.next && isFinite(dTier.matched.maxA)) {
+      const need = (dTier.matched.maxA - dOrders) + 1;
+      const diff = dTier.next.pt - dTier.matched.pt;
+      delSuggBox.innerHTML += `
+        <div class="suggestion-item">
+          <div class="sugg-left">
+            <h4>${WEIGHT_LABELS[colIdx]} · ${dOrders.toLocaleString('vi-VN')} đơn (Đang mốc ${dTier.matched.range})</h4>
+            <p>Cần thêm <b>+${need.toLocaleString('vi-VN')}</b> đơn để đạt mốc ${dTier.next.range}</p>
+          </div>
+          <div class="sugg-points">+${formatPts(diff)}</div>
+        </div>
+      `;
+    }
+
+    // 2. Tab Đơn Lấy
+    const pTr = document.createElement('tr');
+    pTr.innerHTML = `
+      <td class="weight-name">${WEIGHT_LABELS[colIdx]}</td>
+      <td class="order-num pickup-num ${pOrders === 0 ? 'zero' : ''}">
+        ${pOrders.toLocaleString('vi-VN')}
+        <div class="bar-container"><div class="bar-fill pick" style="width:${pTier.pct}%"></div></div>
+      </td>
+      <td style="color:var(--text-muted); font-size:11px;">${pTier.matched.range}</td>
+      <td class="points-badge ${pOrders === 0 ? 'zero' : ''}">${formatPts(pTier.matched.pt)}</td>
+    `;
+    pickTbody.appendChild(pTr);
+
+    if (pOrders > 0 && pTier.next && isFinite(pTier.matched.maxA)) {
+      const need = (pTier.matched.maxA - pOrders) + 1;
+      const diff = pTier.next.pt - pTier.matched.pt;
+      pickSuggBox.innerHTML += `
+        <div class="suggestion-item">
+          <div class="sugg-left">
+            <h4>${WEIGHT_LABELS[colIdx]} · ${pOrders.toLocaleString('vi-VN')} đơn (Đang mốc ${pTier.matched.range})</h4>
+            <p>Cần thêm <b>+${need.toLocaleString('vi-VN')}</b> đơn để đạt mốc ${pTier.next.range}</p>
+          </div>
+          <div class="sugg-points">+${formatPts(diff)}</div>
+        </div>
+      `;
+    }
+
+    // 3. Tab Đơn Hoàn
+    const rTr = document.createElement('tr');
+    rTr.innerHTML = `
+      <td class="weight-name">${WEIGHT_LABELS[colIdx]}</td>
+      <td class="order-num return-num ${rOrders === 0 ? 'zero' : ''}">
+        ${rOrders.toLocaleString('vi-VN')}
+        <div class="bar-container"><div class="bar-fill ret" style="width:${rTier.pct}%"></div></div>
+      </td>
+      <td style="color:var(--text-muted); font-size:11px;">${rTier.matched.range}</td>
+      <td class="points-badge ${rOrders === 0 ? 'zero' : ''}">${formatPts(rTier.matched.pt)}</td>
+    `;
+    retTbody.appendChild(rTr);
+
+    if (rOrders > 0 && rTier.next && isFinite(rTier.matched.maxA)) {
+      const need = (rTier.matched.maxA - rOrders) + 1;
+      const diff = rTier.next.pt - rTier.matched.pt;
+      retSuggBox.innerHTML += `
+        <div class="suggestion-item">
+          <div class="sugg-left">
+            <h4>${WEIGHT_LABELS[colIdx]} · ${rOrders.toLocaleString('vi-VN')} đơn (Đang mốc ${rTier.matched.range})</h4>
+            <p>Cần thêm <b>+${need.toLocaleString('vi-VN')}</b> đơn để đạt mốc ${rTier.next.range}</p>
+          </div>
+          <div class="sugg-points">+${formatPts(diff)}</div>
+        </div>
+      `;
+    }
+
+    // 4. Gợi ý cho Tab Tổng Quan
+    if (dOrders > 0 && dTier.next && isFinite(dTier.matched.maxA)) {
+      const need = (dTier.matched.maxA - dOrders) + 1;
+      overviewSuggBox.innerHTML += `
+        <div class="suggestion-item sugg-del">
+          <div class="sugg-left">
+            <h4><span class="sugg-type-badge sugg-type-del">GIAO</span> ${WEIGHT_LABELS[colIdx]} · ${dOrders.toLocaleString('vi-VN')} đơn (Đang ${dTier.matched.range})</h4>
+            <p>Cần thêm <b>+${need.toLocaleString('vi-VN')}</b> đơn để chạm mốc ${dTier.next.range}</p>
+          </div>
+          <div class="sugg-points">+${formatPts(dTier.next.pt - dTier.matched.pt)}</div>
+        </div>
+      `;
+    }
+    if (pOrders > 0 && pTier.next && isFinite(pTier.matched.maxA)) {
+      const need = (pTier.matched.maxA - pOrders) + 1;
+      overviewSuggBox.innerHTML += `
+        <div class="suggestion-item sugg-pick">
+          <div class="sugg-left">
+            <h4><span class="sugg-type-badge sugg-type-pick">LẤY</span> ${WEIGHT_LABELS[colIdx]} · ${pOrders.toLocaleString('vi-VN')} đơn (Đang ${pTier.matched.range})</h4>
+            <p>Cần thêm <b>+${need.toLocaleString('vi-VN')}</b> đơn để chạm mốc ${pTier.next.range}</p>
+          </div>
+          <div class="sugg-points">+${formatPts(pTier.next.pt - pTier.matched.pt)}</div>
+        </div>
+      `;
+    }
+    if (rOrders > 0 && rTier.next && isFinite(rTier.matched.maxA)) {
+      const need = (rTier.matched.maxA - rOrders) + 1;
+      overviewSuggBox.innerHTML += `
+        <div class="suggestion-item sugg-ret">
+          <div class="sugg-left">
+            <h4><span class="sugg-type-badge sugg-type-ret">HOÀN</span> ${WEIGHT_LABELS[colIdx]} · ${rOrders.toLocaleString('vi-VN')} đơn (Đang ${rTier.matched.range})</h4>
+            <p>Cần thêm <b>+${need.toLocaleString('vi-VN')}</b> đơn để chạm mốc ${rTier.next.range}</p>
+          </div>
+          <div class="sugg-points">+${formatPts(rTier.next.pt - rTier.matched.pt)}</div>
+        </div>
+      `;
+    }
+  }
+
+  if (delGrandOrders === 0) delSuggBox.innerHTML = '<div style="font-size:12px; color:var(--text-muted); text-align:center; padding:16px;">Chưa có dữ liệu đơn giao.</div>';
+  if (pickGrandOrders === 0) pickSuggBox.innerHTML = '<div style="font-size:12px; color:var(--text-muted); text-align:center; padding:16px;">Chưa có dữ liệu đơn lấy.</div>';
+  if (retGrandOrders === 0) retSuggBox.innerHTML = '<div style="font-size:12px; color:var(--text-muted); text-align:center; padding:16px;">Chưa có dữ liệu đơn hoàn.</div>';
+  if (delGrandOrders === 0 && pickGrandOrders === 0 && retGrandOrders === 0) {
+    overviewSuggBox.innerHTML = '<div style="font-size:12px; color:var(--text-muted); text-align:center; padding:16px;">Chưa có dữ liệu. Hãy bấm "＋ Nhập liệu" để bắt đầu.</div>';
+  }
+
+  // 1. Tổng điểm sản lượng
+  const totalProductionPoints = delGrandPoints + pickGrandPoints + retGrandPoints;
+  const overallOrders = delGrandOrders + pickGrandOrders + retGrandOrders;
+  const totalDaysCount = appData.delivery.length + appData.pickup.length + (appData.return || []).length;
+
+  // 2. Tính số ngày trong tháng hiện tại
+  const now = new Date();
+  const daysInCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+  // 3. Điểm khoảng cách + Ngày công
+  const workStats = calculateWorkAndDistance(daysInCurrentMonth);
+  const distanceAndWorkPoints = workStats.totalCombined;
+
+  // 4. Thưởng thứ hạng
+  let rankRate = 0;
+  if (userRank === 'dong') rankRate = 0.10;
+  else if (userRank === 'bac') rankRate = 0.15;
+  else if (userRank === 'vang') rankRate = 0.20;
+  else if (userRank === 'bachkim') rankRate = 0.22;
+  else if (userRank === 'kimcuong') rankRate = 0.26;
+
+  const rankBonusPoints = totalProductionPoints * rankRate;
+
+  // 5. Tổng điểm tạm tính
+  const grandTotalPoints = totalProductionPoints + distanceAndWorkPoints + rankBonusPoints;
+
+  // Cập nhật DOM Tổng Quan
+  document.getElementById('overallProductionPoints').innerText = formatPts(totalProductionPoints);
+  document.getElementById('overallDistanceWorkPoints').innerText = formatPts(distanceAndWorkPoints);
+  document.getElementById('workDaysSummaryDetail').innerText = `(${workStats.fullWorkDays} ngày công chuẩn · ${workStats.halfWorkDays} ngày nửa công | ${daysInCurrentMonth - 4} ngày tiêu chuẩn)`;
+  document.getElementById('overallRankBonusPoints').innerText = formatPts(rankBonusPoints);
+  document.getElementById('overallGrandTotalPoints').innerText = formatPts(grandTotalPoints);
+
+  if (overallOrders > 0) {
+    const pDel = Math.round((delGrandOrders / overallOrders) * 100);
+    const pPick = Math.round((pickGrandOrders / overallOrders) * 100);
+    const pRet = 100 - pDel - pPick;
+    document.getElementById('ratioBarDel').style.width = pDel + '%';
+    document.getElementById('ratioBarPick').style.width = pPick + '%';
+    document.getElementById('ratioBarRet').style.width = pRet + '%';
+    document.getElementById('ratioText').innerText = `${pDel}% Giao · ${pPick}% Lấy · ${pRet}% Hoàn`;
+  } else {
+    document.getElementById('ratioBarDel').style.width = '33.3%';
+    document.getElementById('ratioBarPick').style.width = '33.3%';
+    document.getElementById('ratioBarRet').style.width = '33.4%';
+    document.getElementById('ratioText').innerText = '0% Giao · 0% Lấy · 0% Hoàn';
+  }
+
+  document.getElementById('miniDelPoints').innerText = formatPts(delGrandPoints);
+  document.getElementById('miniDelOrders').innerText = `${delGrandOrders.toLocaleString('vi-VN')} đơn`;
+
+  document.getElementById('miniPickPoints').innerText = formatPts(pickGrandPoints);
+  document.getElementById('miniPickOrders').innerText = `${pickGrandOrders.toLocaleString('vi-VN')} đơn`;
+
+  document.getElementById('miniRetPoints').innerText = formatPts(retGrandPoints);
+  document.getElementById('miniRetOrders').innerText = `${retGrandOrders.toLocaleString('vi-VN')} đơn`;
+
+  document.getElementById('delTotalPoints').innerText = formatPts(delGrandPoints);
+  document.getElementById('delTotalOrders').innerText = `${delGrandOrders.toLocaleString('vi-VN')} đơn`;
+  document.getElementById('delSummarySub').innerText = appData.delivery.length > 0 ? `` : '';
+
+  document.getElementById('pickTotalPoints').innerText = formatPts(pickGrandPoints);
+  document.getElementById('pickTotalOrders').innerText = `${pickGrandOrders.toLocaleString('vi-VN')} đơn`;
+  document.getElementById('pickSummarySub').innerText = appData.pickup.length > 0 ? `` : '';
+
+  document.getElementById('retTotalPoints').innerText = formatPts(retGrandPoints);
+  document.getElementById('retTotalOrders').innerText = `${retGrandOrders.toLocaleString('vi-VN')} đơn`;
+  document.getElementById('retSummarySub').innerText = (appData.return || []).length > 0 ? `` : '';
+
+  document.getElementById('histCountNote').innerText = `${totalDaysCount} bản ghi trong bộ nhớ máy`;
+
+  renderHistory();
+  localStorage.setItem('spx_dual_records', JSON.stringify(appData));
+}
+
+function setHistFilter(filterType, btn) {
+  currentHistFilter = filterType;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderHistory();
+}
+
+function renderHistory() {
+  const container = document.getElementById('historyEntries');
+  container.innerHTML = '';
+
+  let list = [];
+  if (currentHistFilter === 'all' || currentHistFilter === 'delivery') {
+    appData.delivery.forEach(r => list.push({ ...r, type: 'delivery' }));
+  }
+  if (currentHistFilter === 'all' || currentHistFilter === 'pickup') {
+    appData.pickup.forEach(r => list.push({ ...r, type: 'pickup' }));
+  }
+  if (currentHistFilter === 'all' || currentHistFilter === 'return') {
+    (appData.return || []).forEach(r => list.push({ ...r, type: 'return' }));
+  }
+
+  list.sort((a, b) => b.id - a.id);
+
+  if (list.length === 0) {
+    container.innerHTML = '<div style="font-size:12px; color:var(--text-muted); text-align:center; padding:24px;">Chưa có lịch sử.</div>';
+    return;
+  }
+
+  list.forEach(r => {
+    let dayTotal = 0;
+    let parts = [];
+    WEIGHT_KEYS.forEach((k, colIdx) => {
+      const val = parseInt(r.weights[k], 10) || 0;
+      dayTotal += val;
+      if (val > 0) parts.push(`${WEIGHT_LABELS[colIdx].replace('>','').replace(' kg','')}: ${val.toLocaleString('vi-VN')}`);
+    });
+
+    let tagClass = 'tag-delivery';
+    let tagText = 'Giao';
+    if (r.type === 'pickup') { tagClass = 'tag-pickup'; tagText = 'Lấy'; }
+    if (r.type === 'return') { tagClass = 'tag-return'; tagText = 'Hoàn'; }
+
+    const div = document.createElement('div');
+    div.className = 'history-entry';
+    div.innerHTML = `
+      <div>
+        <div class="hist-meta">
+          <span class="hist-badge-tag ${tagClass}">${tagText}</span>
+          ${formatDateDisplay(r.date)} · <span>${dayTotal.toLocaleString('vi-VN')} đơn</span>
+        </div>
+        <div class="hist-detail">${parts.join(' • ') || '0 đơn'}</div>
+      </div>
+      <button class="hist-del-btn" title="Xóa" onclick="deleteRecord('${r.type}', ${r.id})">✕ Xóa</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function openAddModal() {
+  document.getElementById('inputDate').value = getTodayIso();
+  const weightIds = ['0_2','2_4','4_6','6_8','8_10','10_12','12_15','over_15'];
+  weightIds.forEach(id => {
+    document.getElementById(`del_inp_${id}`).value = 0;
+    document.getElementById(`pick_inp_${id}`).value = 0;
+    document.getElementById(`ret_inp_${id}`).value = 0;
+  });
+  document.getElementById('scanStatusBanner').style.display = 'none';
+  document.getElementById('entryModal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('entryModal').classList.remove('active');
+}
+
+/* BỘ XỬ LÝ OCR HYBRID */
+async function handleImageScan(input) {
+  const files = input.files;
+  if (!files || files.length === 0) return;
+
+  const banner = document.getElementById('scanStatusBanner');
+  const statusText = document.getElementById('scanStatusText');
+  banner.style.display = 'flex';
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    statusText.innerText = `Đang đọc ảnh ${i + 1}/${files.length}... Vui lòng đợi.`;
+
+    try {
+      let recognizedText = "";
+
+      if ('TextDetector' in window) {
+        try {
+          const imgBitmap = await createImageBitmap(file);
+          const detector = new window.TextDetector();
+          const detectedTexts = await detector.detect(imgBitmap);
+          recognizedText = detectedTexts.map(t => t.rawValue).join('\n');
+        } catch (e) {
+          console.warn("Fallback Tesseract:", e);
+        }
+      }
+
+      if (!recognizedText || recognizedText.trim().length === 0) {
+        const processedImage = await preprocessImageCanvas(file);
+        const result = await Tesseract.recognize(processedImage, 'eng', {
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              statusText.innerText = `Đang quét ảnh ${i + 1}/${files.length}: ${Math.round(m.progress * 100)}%`;
+            }
+          }
+        });
+        recognizedText = result.data.text;
+      }
+
+      parseSPXReport(recognizedText);
+    } catch (err) {
+      console.error("Lỗi quét ảnh:", err);
+    }
+  }
+
+  statusText.innerText = `✓ Đã quét xong! Hãy kiểm tra lại số liệu trước khi bấm Lưu.`;
+  setTimeout(() => { banner.style.display = 'none'; }, 4500);
+  input.value = '';
+}
+
+function preprocessImageCanvas(file) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imgData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const v = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
+        const color = v > 150 ? 255 : 0;
+        data[i] = color;
+        data[i + 1] = color;
+        data[i + 2] = color;
+      }
+      ctx.putImageData(imgData, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function parseSPXReport(rawText) {
+  const text = rawText
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  const dateMatch = text.match(/(?:ngay|day|tiet)[^\d]{0,10}(\d{1,2})[\/\-](\d{1,2})/i);
+  if (dateMatch) {
+    const currentYear = new Date().getFullYear();
+    const day = dateMatch[1].padStart(2, '0');
+    const month = dateMatch[2].padStart(2, '0');
+    document.getElementById('inputDate').value = `${currentYear}-${month}-${day}`;
+  }
+
+  let targetPrefix = 'del_inp';
+  if (text.includes('tra') || text.includes('hoan')) {
+    targetPrefix = 'ret_inp';
+  } else if (text.includes('lay') || text.includes('da lay')) {
+    targetPrefix = 'pick_inp';
+  } else if (text.includes('giao')) {
+    targetPrefix = 'del_inp';
+  }
+
+  const ranges = [
+    { key: '0_2', regex: /0[\.,]000\s*[-–]\s*2[\.,]001[^\d]*(\d+)\s*(?:don|hang)/i },
+    { key: '2_4', regex: /2[\.,]001\s*[-–]\s*4[\.,]001[^\d]*(\d+)\s*(?:don|hang)/i },
+    { key: '4_6', regex: /4[\.,]001\s*[-–]\s*6[\.,]001[^\d]*(\d+)\s*(?:don|hang)/i },
+    { key: '6_8', regex: /6[\.,]001\s*[-–]\s*8[\.,]001[^\d]*(\d+)\s*(?:don|hang)/i },
+    { key: '8_10', regex: /8[\.,]001\s*[-–]\s*10[\.,]001[^\d]*(\d+)\s*(?:don|hang)/i },
+    { key: '10_12', regex: /10[\.,]001\s*[-–]\s*12[\.,]001[^\d]*(\d+)\s*(?:don|hang)/i },
+    { key: '12_15', regex: /12[\.,]001\s*[-–]\s*15[\.,]001[^\d]*(\d+)\s*(?:don|hang)/i },
+    { key: 'over_15', regex: />\s*15[\.,]001[^\d]*(\d+)\s*(?:don|hang)/i }
+  ];
+
+  ranges.forEach(r => {
+    const match = text.match(r.regex);
+    if (match && match[1]) {
+      const val = parseInt(match[1], 10) || 0;
+      const el = document.getElementById(`${targetPrefix}_${r.key}`);
+      if (el) el.value = val;
+    }
+  });
+}
+
+function saveRecord() {
+  let date = document.getElementById('inputDate').value;
+  if (!date) date = getTodayIso();
+
+  const parseWeights = (prefix) => ({
+    w0_2: parseInt(document.getElementById(`${prefix}_0_2`).value, 10) || 0,
+    w2_4: parseInt(document.getElementById(`${prefix}_2_4`).value, 10) || 0,
+    w4_6: parseInt(document.getElementById(`${prefix}_4_6`).value, 10) || 0,
+    w6_8: parseInt(document.getElementById(`${prefix}_6_8`).value, 10) || 0,
+    w8_10: parseInt(document.getElementById(`${prefix}_8_10`).value, 10) || 0,
+    w10_12: parseInt(document.getElementById(`${prefix}_10_12`).value, 10) || 0,
+    w12_15: parseInt(document.getElementById(`${prefix}_12_15`).value, 10) || 0,
+    wover_15: parseInt(document.getElementById(`${prefix}_over_15`).value, 10) || 0
+  });
+
+  const delWeights = parseWeights('del_inp');
+  const pickWeights = parseWeights('pick_inp');
+  const retWeights = parseWeights('ret_inp');
+
+  const delTotal = Object.values(delWeights).reduce((a, b) => a + b, 0);
+  const pickTotal = Object.values(pickWeights).reduce((a, b) => a + b, 0);
+  const retTotal = Object.values(retWeights).reduce((a, b) => a + b, 0);
+
+  const now = Date.now();
+  if (delTotal > 0) {
+    appData.delivery.unshift({ id: now, date, weights: delWeights });
+  }
+  if (pickTotal > 0) {
+    appData.pickup.unshift({ id: now + 1, date, weights: pickWeights });
+  }
+  if (retTotal > 0) {
+    if (!appData.return) appData.return = [];
+    appData.return.unshift({ id: now + 2, date, weights: retWeights });
+  }
+
+  closeModal();
+  updateAllViews();
+}
+
+function deleteRecord(type, id) {
+  if (confirm("Bạn muốn xóa bản ghi ngày này?")) {
+    appData[type] = appData[type].filter(item => item.id !== id);
+    updateAllViews();
+  }
+}
+
+function clearAllHistory() {
+  const totalEntries = appData.delivery.length + appData.pickup.length + (appData.return || []).length;
+  if (totalEntries === 0) return;
+  if (confirm("Bạn chắc chắn muốn xóa toàn bộ lịch sử?")) {
+    appData = { delivery: [], pickup: [], return: [] };
+    updateAllViews();
+  }
+}
+
+// Khởi chạy
+updateAllViews();
+</script>
+</body>
+</html>

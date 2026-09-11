@@ -3,6 +3,9 @@
 <head>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>SPX Chi Linh 2 - Tính Điểm Sản Lượng</title>
 <style>
@@ -1259,83 +1262,29 @@
 // ==========================================
 // TỰ ĐỘNG PHÁT HIỆN SỬA ĐỔI FILE INDEX.HTML
 // ==========================================
+// TÌM ĐOẠN NÀY (BẮT ĐẦU TỪ):
+// ==========================================
+// CƠ CHẾ TỰ ĐỘNG CẬP NHẬT CHUẨN XÁC 100%
+// ==========================================
 function createQuickHash(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash) + str.charCodeAt(i);
-    hash |= 0;
-  }
-  return String(hash);
+  ...
 }
 
 async function checkForAppUpdates() {
-  try {
-    // Tải ngầm file index.html mới nhất từ máy chủ, chặn hoàn toàn cache của WebView
-    const res = await fetch(`index.html?t=${Date.now()}`, {
-      cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
-    });
-
-    if (res.ok) {
-      const serverHtml = await res.text();
-      if (!serverHtml || serverHtml.length < 500) return;
-
-      const serverHash = createQuickHash(serverHtml);
-      const localHash = localStorage.getItem('spx_current_file_hash');
-
-      // Nếu lần đầu mở app, lưu mã hash hiện tại
-      if (!localHash) {
-        localStorage.setItem('spx_current_file_hash', serverHash);
-        return;
-      }
-
-      // Nếu nội dung trên GitHub khác với bản đang chạy trên máy -> BẬT CẬP NHẬT
-      if (serverHash !== localHash) {
-        const bar = document.getElementById('updateNotificationBar');
-        if (bar) bar.style.display = 'flex';
-        window.pendingFileHash = serverHash;
-      }
-    }
-  } catch (err) {
-    console.log("Bỏ qua kiểm tra update:", err);
-  }
+  ...
 }
 
 // Kiểm tra khi vừa mở app
 checkForAppUpdates();
 
-// Kiểm tra lại khi chuyển từ ứng dụng khác quay lại app
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    checkForAppUpdates();
-  }
+  ...
 });
 
 function forceAppReload() {
-  const overlay = document.getElementById('updateProgressOverlay');
-  const bar = document.getElementById('updateNotificationBar');
-  if (bar) bar.style.display = 'none';
-  if (overlay) overlay.style.display = 'flex';
-
-  setUpdateProgress(30, 'Đang kéo dữ liệu mới...');
-
-  if (window.pendingFileHash) {
-    localStorage.setItem('spx_current_file_hash', window.pendingFileHash);
-  }
-  localStorage.setItem('spx_update_pending', '1');
-
-  setTimeout(() => {
-    setUpdateProgress(70, 'Đang nạp phiên bản mới...');
-    setTimeout(() => {
-      setUpdateProgress(100, 'Hoàn tất! Đang khởi động lại...');
-      setTimeout(() => {
-        const baseUrl = window.location.href.split('?')[0];
-        window.location.replace(baseUrl + '?v=' + Date.now());
-      }, 350);
-    }, 400);
-  }, 400);
+  ...
 }
-
+// KẾT THÚC NGAY TRƯỚC HÀM: function showUpdateResult(message, success)
 function showUpdateResult(message, success) {
   const toast = document.getElementById('updateResultToast');
   if (!toast) return;

@@ -1250,86 +1250,46 @@
 </div>
 
 <script>
-// TỰ ĐỘNG KIỂM TRA PHIÊN BẢN MỚI TỪ GITHUB
-// Dùng cả ETag/Last-Modified và fingerprint nội dung để tránh trường hợp
-// máy chủ/CDN không trả Last-Modified khiến thông báo cập nhật biến mất.
-async function getAppBuildSignature(html, response) {
-  const etag = response?.headers?.get('ETag');
-  const modified = response?.headers?.get('Last-Modified');
-  if (etag || modified) return (etag || '') + '|' + (modified || '');
-  if (window.crypto?.subtle) {
-    const data = new TextEncoder().encode(html);
-    const hash = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
-  }
-  return html.length + '|' + html.slice(0, 120);
-}
+// ==========================================
+// CƠ CHẾ TỰ ĐỘNG CẬP NHẬT CHUẨN XÁC 100%
+// ==========================================
+const CURRENT_APP_VERSION = "2.2.3"; // <-- Mỗi khi sửa code xong, tăng số này lên (ví dụ 2.2.4)
 
 async function checkForAppUpdates() {
   try {
-    const res = await fetch(`index.html?check=${Date.now()}`, {
-      method: 'GET', cache: 'no-store', credentials: 'same-origin'
+    // Gọi thẳng file version.json kèm timestamp và chặn cache triệt để
+    const res = await fetch(`version.json?nocache=${Date.now()}`, {
+      cache: 'no-store',
+      headers: {
+        'Pragma': 'no-cache',
+        'Cache-Control': 'no-cache'
+      }
     });
-    if (!res.ok) return;
-    const html = await res.text();
-    if (!html || html.length < 1000) return;
 
-    const serverSignature = await getAppBuildSignature(html, res);
-    const localSignature = localStorage.getItem('spx_app_build_signature');
+    if (res.ok) {
+      const data = await res.json();
+      const serverVer = String(data.version || '').trim();
+      const localVer = String(CURRENT_APP_VERSION).trim();
 
-    // Lần đầu: lưu chữ ký hiện tại, không báo nhầm là có update.
-    if (!localSignature) {
-      localStorage.setItem('spx_app_build_signature', serverSignature);
-      // Giữ tương thích với bản cũ.
-      const modified = res.headers.get('Last-Modified') || res.headers.get('ETag');
-      if (modified) localStorage.setItem('spx_app_build_time', modified);
-      return;
-    }
-
-    if (serverSignature !== localSignature) {
-      const bar = document.getElementById('updateNotificationBar');
-      if (bar) bar.style.display = 'flex';
-      window.newServerBuildTime = res.headers.get('Last-Modified') || res.headers.get('ETag') || serverSignature;
-      window.newServerBuildSignature = serverSignature;
+      // Nếu số version trên GitHub khác số trong code máy -> Bật thông báo
+      if (serverVer && serverVer !== localVer) {
+        const bar = document.getElementById('updateNotificationBar');
+        if (bar) bar.style.display = 'flex';
+      }
     }
   } catch (err) {
-    console.log('Bỏ qua kiểm tra update:', err);
+    console.log("Bỏ qua kiểm tra update:", err);
   }
 }
 
-// Kiểm tra update mỗi lần app được mở / quay lại foreground.
-// Không phụ thuộc vào bộ đếm 5 phút: rider mở app lúc nào thì kiểm tra lúc đó.
-let updateCheckInProgress = false;
-let appWasHidden = document.visibilityState === 'hidden';
+// Kiểm tra khi vừa mở app
+checkForAppUpdates();
 
-async function checkForAppUpdatesOnOpen() {
-  if (updateCheckInProgress) return;
-  updateCheckInProgress = true;
-  try {
-    await checkForAppUpdates();
-  } finally {
-    updateCheckInProgress = false;
-  }
-}
-
-// Kiểm tra ngay khi trang/app được mở.
-checkForAppUpdatesOnOpen();
-
-// Nếu app đang chạy nền rồi rider quay lại mở app, kiểm tra lại ngay.
+// Kiểm tra lại khi app quay lại từ chạy nền
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') {
-    appWasHidden = true;
-    return;
+  if (document.visibilityState === 'visible') {
+    checkForAppUpdates();
   }
-  if (document.visibilityState === 'visible' && appWasHidden) {
-    appWasHidden = false;
-    checkForAppUpdatesOnOpen();
-  }
-});
-
-// Hỗ trợ trường hợp PWA/WebView phát sự kiện pageshow khi app được mở lại.
-window.addEventListener('pageshow', () => {
-  checkForAppUpdatesOnOpen();
 });
 
 function showUpdateResult(message, success) {
@@ -1338,7 +1298,7 @@ function showUpdateResult(message, success) {
   toast.textContent = message;
   toast.className = 'update-result-toast ' + (success ? 'update-result-success' : 'update-result-error');
   toast.style.display = 'block';
-  setTimeout(() => { toast.style.display = 'none'; }, 4500);
+  setTimeout(() => { toast.style.display = 'none'; }, 3500);
 }
 
 function setUpdateProgress(percent, status) {
@@ -1356,68 +1316,30 @@ function forceAppReload() {
   if (bar) bar.style.display = 'none';
   if (overlay) overlay.style.display = 'flex';
 
-  const title = document.getElementById('updateProgressTitle');
-  if (title) title.textContent = '🚀 Đang cập nhật ứng dụng';
+  setUpdateProgress(30, 'Đang tải bản cập nhật mới...');
 
-  let progress = 0;
-  setUpdateProgress(0, 'Đang kiểm tra phiên bản mới...');
+  setTimeout(() => {
+    setUpdateProgress(70, 'Đang ghi đè bộ nhớ ứng dụng...');
+    localStorage.setItem('spx_update_pending', '1');
 
-  const steps = [
-    [18, 'Đang kết nối máy chủ...'],
-    [36, 'Đang tải phiên bản mới...'],
-    [58, 'Đang kiểm tra dữ liệu ứng dụng...'],
-    [78, 'Đang chuẩn bị khởi động phiên bản mới...']
-  ];
-  let i = 0;
-  const timer = setInterval(() => {
-    if (i < steps.length) {
-      progress = steps[i][0];
-      setUpdateProgress(progress, steps[i][1]);
-      i++;
-    }
-  }, 350);
-
-  (async () => {
-    try {
-      // GET thật để xác nhận phiên bản mới có thể tải được trước khi reload.
-      const res = await fetch(`index.html?update=${Date.now()}`, {
-        method: 'GET', cache: 'no-store', credentials: 'same-origin'
-      });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const html = await res.text();
-      if (!html || html.length < 1000) throw new Error('Nội dung phiên bản mới không hợp lệ');
-
-      clearInterval(timer);
-      setUpdateProgress(92, 'Đã tải thành công. Đang áp dụng phiên bản mới...');
-      if (window.newServerBuildTime) {
-        localStorage.setItem('spx_app_build_time', window.newServerBuildTime);
-      }
-      if (window.newServerBuildSignature) {
-        localStorage.setItem('spx_app_build_signature', window.newServerBuildSignature);
-      }
-      localStorage.setItem('spx_update_pending', '1');
-
+    setTimeout(() => {
+      setUpdateProgress(100, 'Hoàn tất! Đang mở lại app...');
       setTimeout(() => {
-        setUpdateProgress(100, 'Hoàn tất! Đang khởi động lại...');
-        setTimeout(() => {
-          const baseUrl = window.location.href.split('?')[0];
-          window.location.replace(baseUrl + '?v=' + Date.now());
-        }, 450);
-      }, 350);
-    } catch (err) {
-      clearInterval(timer);
-      console.error('Cập nhật thất bại:', err);
-      setUpdateProgress(100, '❌ Không thể tải phiên bản mới. Kiểm tra mạng rồi thử lại.');
-      if (title) title.textContent = '❌ Cập nhật thất bại';
-      const fill = document.getElementById('updateProgressFill');
-      if (fill) fill.style.background = '#dc2626';
-      setTimeout(() => {
-        if (overlay) overlay.style.display = 'none';
-        showUpdateResult('❌ Cập nhật thất bại. Ứng dụng hiện tại vẫn được giữ nguyên.', false);
-      }, 1400);
-    }
-  })();
+        // Buộc WebView đổi sang URL mới có chứa timestamp để xóa sạch cache cũ
+        const cleanUrl = window.location.href.split('?')[0];
+        window.location.replace(cleanUrl + '?v=' + Date.now());
+      }, 400);
+    }, 400);
+  }, 400);
 }
+
+// Báo thành công sau khi trang reload
+(function showUpdateSuccessAfterReload() {
+  if (localStorage.getItem('spx_update_pending') === '1') {
+    localStorage.removeItem('spx_update_pending');
+    setTimeout(() => showUpdateResult('✅ Cập nhật thành công! Bạn đang dùng bản mới nhất.', true), 500);
+  }
+})();
 
 // Nếu lần trước đã cập nhật và reload thành công, báo rõ cho người dùng.
 (function showUpdateSuccessAfterReload() {

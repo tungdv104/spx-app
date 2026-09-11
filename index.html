@@ -725,6 +725,31 @@
     .quick-stat { padding:9px 5px; }
     .chart-wrap { height:175px; }
   }
+  /* 1. Cho phép trang hoặc khung modal cuộn thoải mái tới tận đáy */
+html, body, .app-container, .main-content {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 2. Tạo khoảng trống đệm ở đáy cho form nhập liệu để nút Lưu luôn trồi lên trên thanh Bottom Bar */
+#entryForm, 
+.entry-form, 
+form {
+  padding-bottom: 120px !important; /* Đẩy nội dung lên cao hơn thanh bottom bar */
+  margin-bottom: 30px !important;
+}
+
+/* 3. Đảm bảo cụm nút Lưu nổi lên trên và bấm được */
+.btn-save-container,
+button[type="submit"],
+#btnSaveDaily,
+.btn-save {
+  position: relative;
+  z-index: 10; /* Nổi lên trên các layout khác */
+  margin-top: 15px !important;
+  margin-bottom: 25px !important;
+}
+
 </style>
 </head>
 <body>

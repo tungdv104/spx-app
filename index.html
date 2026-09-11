@@ -1134,21 +1134,26 @@ const CURRENT_VERSION = "2.2.1";
 // TỰ ĐỘNG KIỂM TRA PHIÊN BẢN MỚI TỪ GITHUB
 async function checkForAppUpdates() {
   try {
-    // Gọi thẳng file version.json qua GitHub Pages để không bị delay CDN
-    const res = await fetch(`version.json?t=${Date.now()}`);
+    // Gọi thẳng file version.json cùng thư mục web kèm timestamp chống cache
+    const res = await fetch(`version.json?nocache=${Date.now()}`);
     if (res.ok) {
       const data = await res.json();
-      console.log("Version máy:", CURRENT_VERSION, "Version mạng:", data.version);
+      console.log("Phiên bản trên máy:", CURRENT_VERSION, "| Trên mạng:", data.version);
+      
+      // Nếu số phiên bản trên mạng KHÁC với số trong code thì BẬT thanh thông báo
       if (data.version && data.version !== CURRENT_VERSION) {
-        const bar = document.getElementById('updateNotificationBar');
-        if (bar) bar.style.display = 'flex';
+        const notifyBar = document.getElementById('updateNotificationBar');
+        if (notifyBar) {
+          notifyBar.style.display = 'flex';
+        }
       }
     }
   } catch (e) {
-    console.log("Lỗi check version:", e);
+    console.warn("Bỏ qua kiểm tra update:", e);
   }
 }
 checkForAppUpdates();
+
   
 
 function initTheme() {

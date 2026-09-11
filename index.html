@@ -1251,28 +1251,49 @@
 
 <script>
 // TỰ ĐỘNG KIỂM TRA PHIÊN BẢN MỚI TỪ GITHUB
+// Dùng cả ETag/Last-Modified và fingerprint nội dung để tránh trường hợp
+// máy chủ/CDN không trả Last-Modified khiến thông báo cập nhật biến mất.
+async function getAppBuildSignature(html, response) {
+  const etag = response?.headers?.get('ETag');
+  const modified = response?.headers?.get('Last-Modified');
+  if (etag || modified) return (etag || '') + '|' + (modified || '');
+  if (window.crypto?.subtle) {
+    const data = new TextEncoder().encode(html);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+  return html.length + '|' + html.slice(0, 120);
+}
+
 async function checkForAppUpdates() {
   try {
     const res = await fetch(`index.html?check=${Date.now()}`, {
-      method: 'HEAD', cache: 'no-store'
+      method: 'GET', cache: 'no-store', credentials: 'same-origin'
     });
-    if (res.ok) {
-      const serverLastModified = res.headers.get('Last-Modified') || res.headers.get('ETag');
-      const localLastModified = localStorage.getItem('spx_app_build_time');
-      if (serverLastModified) {
-        if (!localLastModified) {
-          localStorage.setItem('spx_app_build_time', serverLastModified);
-          return;
-        }
-        if (serverLastModified !== localLastModified) {
-          const bar = document.getElementById('updateNotificationBar');
-          if (bar) bar.style.display = 'flex';
-          window.newServerBuildTime = serverLastModified;
-        }
-      }
+    if (!res.ok) return;
+    const html = await res.text();
+    if (!html || html.length < 1000) return;
+
+    const serverSignature = await getAppBuildSignature(html, res);
+    const localSignature = localStorage.getItem('spx_app_build_signature');
+
+    // Lần đầu: lưu chữ ký hiện tại, không báo nhầm là có update.
+    if (!localSignature) {
+      localStorage.setItem('spx_app_build_signature', serverSignature);
+      // Giữ tương thích với bản cũ.
+      const modified = res.headers.get('Last-Modified') || res.headers.get('ETag');
+      if (modified) localStorage.setItem('spx_app_build_time', modified);
+      return;
+    }
+
+    if (serverSignature !== localSignature) {
+      const bar = document.getElementById('updateNotificationBar');
+      if (bar) bar.style.display = 'flex';
+      window.newServerBuildTime = res.headers.get('Last-Modified') || res.headers.get('ETag') || serverSignature;
+      window.newServerBuildSignature = serverSignature;
     }
   } catch (err) {
-    console.log("Bỏ qua kiểm tra update:", err);
+    console.log('Bỏ qua kiểm tra update:', err);
   }
 }
 
@@ -1335,6 +1356,9 @@ function forceAppReload() {
       setUpdateProgress(92, 'Đã tải thành công. Đang áp dụng phiên bản mới...');
       if (window.newServerBuildTime) {
         localStorage.setItem('spx_app_build_time', window.newServerBuildTime);
+      }
+      if (window.newServerBuildSignature) {
+        localStorage.setItem('spx_app_build_signature', window.newServerBuildSignature);
       }
       localStorage.setItem('spx_update_pending', '1');
 

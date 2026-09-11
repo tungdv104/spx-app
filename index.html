@@ -4,7 +4,7 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>SPX Chi Linh 2 - TĂ­nh Äiá»ƒm Sáº£n LÆ°á»£ng</title>
+<title>SPX Chi Linh 2 - Tính Điểm Sản Lượng</title>
 <style>
   :root {
     --bg-gradient: radial-gradient(at 0% 0%, #e0e7ff 0px, transparent 50%),
@@ -723,108 +723,108 @@
 </head>
 <body>
 
-<!-- THĂ”NG BĂO Tá»° Äá»˜NG Cáº¬P NHáº¬T KHI CĂ“ Báº¢N Má»I TRĂN GITHUB -->
+<!-- THÔNG BÁO TỰ ĐỘNG CẬP NHẬT KHI CÓ BẢN MỚI TRÊN GITHUB -->
 <div class="update-bar-toast" id="updateNotificationBar">
-  <span>đŸ€ ÄĂ£ cĂ³ phiĂªn báº£n má»›i cáº­p nháº­t!</span>
-  <button class="btn" style="background:#fff; color:#0ea5e9; padding:4px 8px; font-size:11px; font-weight:700;" onclick="forceAppReload()">Cáº­p nháº­t ngay</button>
+  <span>🚀 Đã có phiên bản mới cập nhật!</span>
+  <button class="btn" style="background:#fff; color:#0ea5e9; padding:4px 8px; font-size:11px; font-weight:700;" onclick="forceAppReload()">Cập nhật ngay</button>
 </div>
 
 <header class="top-nav">
   <div class="nav-title">
-    <span>đŸ“¦ SPX Chi Linh 2</span>
+    <span>📦 SPX Chi Linh 2</span>
   </div>
   <div class="header-actions">
-    <button class="btn" id="themeToggleBtn" onclick="toggleTheme()" title="Chuyá»ƒn cháº¿ Ä‘á»™ SĂ¡ng / Tá»‘i">
-      <span id="themeIcon">đŸŒ™</span> <span id="themeText">Tá»‘i</span>
+    <button class="btn" id="themeToggleBtn" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
+      <span id="themeIcon">🌙</span> <span id="themeText">Tối</span>
     </button>
-    <button class="btn btn-primary" onclick="openAddModal()">ï¼‹ Nháº­p liá»‡u</button>
+    <button class="btn btn-primary" onclick="openAddModal()">＋ Nhập liệu</button>
   </div>
 </header>
 
 <div class="layout-shell">
   <aside class="vertical-sidebar">
     <button class="tab-btn active" onclick="switchMainTab('overview', this)">
-      <span>đŸ“</span>
-      <span>Tá»•ng Quan</span>
+      <span>📊</span>
+      <span>Tổng Quan</span>
     </button>
     <button class="tab-btn" onclick="switchMainTab('delivery', this)">
-      <span>đŸ</span>
-      <span>ÄÆ¡n Giao</span>
+      <span>🚚</span>
+      <span>Đơn Giao</span>
     </button>
     <button class="tab-btn" onclick="switchMainTab('pickup', this)">
-      <span>đŸ“¥</span>
-      <span>ÄÆ¡n Láº¥y</span>
+      <span>📥</span>
+      <span>Đơn Lấy</span>
     </button>
     <button class="tab-btn" onclick="switchMainTab('return', this)">
-      <span>đŸ“¦</span>
-      <span>ÄÆ¡n HoĂ n</span>
+      <span>📦</span>
+      <span>Đơn Hoàn</span>
     </button>
     <button class="tab-btn" onclick="switchMainTab('history', this)">
-      <span>đŸ—‚ï¸</span>
-      <span>Nháº­t KĂ½</span>
+      <span>🗂️</span>
+      <span>Nhật Ký</span>
     </button>
   </aside>
 
   <div class="content-area">
-    <!-- TAB 0: Tá»”NG QUAN -->
+    <!-- TAB 0: TỔNG QUAN -->
     <div class="tab-panel active" id="tab-overview">
       <main class="app-container">
         <section class="card">
           <div class="overview-hero-card">
-            <!-- BOX THá»¨ Háº NG & PHá»¤ Cáº¤P KHOáº¢NG CĂCH -->
+            <!-- BOX THỨ HẠNG & PHỤ CẤP KHOẢNG CÁCH -->
             <div class="hero-rank-select-box">
               <div class="hero-rank-row">
-                <label for="riderRankSelect">đŸ–ï¸ Thá»© háº¡ng cá»§a báº¡n:</label>
+                <label for="riderRankSelect">🎖️ Thứ hạng của bạn:</label>
                 <select id="riderRankSelect" class="select-control" onchange="onRankChange(this.value)">
-                  <option value="none">KhĂ´ng háº¡ng (0%)</option>
-                  <option value="dong">Äá»“ng (+10%)</option>
-                  <option value="bac">Báº¡c (+15%)</option>
-                  <option value="vang">VĂ ng (+20%)</option>
-                  <option value="bachkim">Báº¡ch Kim (+22%)</option>
-                  <option value="kimcuong">Kim CÆ°Æ¡ng (+26%)</option>
+                  <option value="none">Không hạng (0%)</option>
+                  <option value="dong">Đồng (+10%)</option>
+                  <option value="bac">Bạc (+15%)</option>
+                  <option value="vang">Vàng (+20%)</option>
+                  <option value="bachkim">Bạch Kim (+22%)</option>
+                  <option value="kimcuong">Kim Cương (+26%)</option>
                 </select>
               </div>
 
               <div class="hero-rank-row" style="border-top:1px dashed var(--glass-border-subtle); padding-top:6px;">
-                <label for="distanceAllowanceInput">đŸ“ Phá»¥ cáº¥p khoáº£ng cĂ¡ch thĂ¡ng:</label>
+                <label for="distanceAllowanceInput">📍 Phụ cấp khoảng cách tháng:</label>
                 <div style="display:flex; align-items:center; gap:4px;">
                   <input type="number" id="distanceAllowanceInput" class="input-control" style="width:120px; padding:4px 8px; font-size:13px; font-weight:700; text-align:right;" value="1000000" oninput="onDistanceAllowanceChange(this.value)">
-                  <span style="font-size:11px; font-weight:700; color:var(--text-muted);">VNÄ</span>
+                  <span style="font-size:11px; font-weight:700; color:var(--text-muted);">VNĐ</span>
                 </div>
               </div>
             </div>
 
-            <!-- Báº¢NG CHI TIáº¾T Cá»˜NG ÄIá»‚M -->
+            <!-- BẢNG CHI TIẾT CỘNG ĐIỂM -->
             <div class="hero-calc-list">
               <div class="calc-row">
-                <span class="label">đŸŒŸ Tá»•ng Ä‘iá»ƒm sáº£n lÆ°á»£ng:</span>
-                <span class="val" id="overallProductionPoints">0 VNÄ</span>
+                <span class="label">🌟 Tổng điểm sản lượng:</span>
+                <span class="val" id="overallProductionPoints">0 VNĐ</span>
               </div>
               <div class="calc-row">
-                <span class="label">đŸ“ Äiá»ƒm khoáº£ng cĂ¡ch + NgĂ y cĂ´ng:</span>
-                <span class="val" id="overallDistanceWorkPoints">0 VNÄ</span>
+                <span class="label">📍 Điểm khoảng cách + Ngày công:</span>
+                <span class="val" id="overallDistanceWorkPoints">0 VNĐ</span>
               </div>
               <div style="font-size:10px; color:var(--text-muted); margin-top:-4px;" id="workDaysSummaryDetail">
-                (0 ngĂ y cĂ´ng chuáº©n Â· 0 ngĂ y ná»­a cĂ´ng | 26 ngĂ y tiĂªu chuáº©n)
+                (0 ngày công chuẩn · 0 ngày nửa công | 26 ngày tiêu chuẩn)
               </div>
               <div class="calc-row">
-                <span class="label">đŸ Äiá»ƒm thÆ°á»Ÿng thá»© háº¡ng:</span>
-                <span class="val" id="overallRankBonusPoints">0 VNÄ</span>
+                <span class="label">🎁 Điểm thưởng thứ hạng:</span>
+                <span class="val" id="overallRankBonusPoints">0 VNĐ</span>
               </div>
             </div>
 
-            <!-- Tá»”NG ÄIá»‚M Táº M TĂNH -->
+            <!-- TỔNG ĐIỂM TẠM TÍNH -->
             <div class="hero-grand-total">
               <div>
-                <div class="grand-label">Tá»”NG ÄIá»‚M Táº M TĂNH</div>
+                <div class="grand-label">TỔNG ĐIỂM TẠM TÍNH</div>
               </div>
-              <div class="grand-val" id="overallGrandTotalPoints">0 VNÄ</div>
+              <div class="grand-val" id="overallGrandTotalPoints">0 VNĐ</div>
             </div>
 
             <div>
               <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:600; color:var(--text-muted); margin-bottom:4px;">
-                <span>PhĂ¢n bá»• sáº£n lÆ°á»£ng:</span>
-                <span id="ratioText">0% Giao Â· 0% Láº¥y Â· 0% HoĂ n</span>
+                <span>Phân bổ sản lượng:</span>
+                <span id="ratioText">0% Giao · 0% Lấy · 0% Hoàn</span>
               </div>
               <div class="overview-bar-ratio">
                 <div class="ratio-del" id="ratioBarDel" style="width: 33.3%"></div>
@@ -835,86 +835,86 @@
           </div>
 
 
-          <!-- HĂ”M NAY / THĂNG NĂ€Y -->
+          <!-- HÔM NAY / THÁNG NÀY -->
           <section class="card quick-period-card">
             <div class="card-head" style="margin-bottom:8px;">
               <div>
-                <h2>đŸ“ Sáº£n LÆ°á»£ng</h2>
-                <p id="periodTitle">HĂ´m nay Â· 11/09/2026</p>
+                <h2>📊 Sản Lượng</h2>
+                <p id="periodTitle">Hôm nay · 11/09/2026</p>
               </div>
-              <span id="periodTotalOrders" style="font-size:11px;font-weight:800;color:var(--spx-orange);">0 Ä‘Æ¡n</span>
+              <span id="periodTotalOrders" style="font-size:11px;font-weight:800;color:var(--spx-orange);">0 đơn</span>
             </div>
             <div class="period-switch">
-              <button class="period-btn active" id="periodTodayBtn" onclick="setPeriodView('today', this)">HĂ´m nay</button>
-              <button class="period-btn" id="periodMonthBtn" onclick="setPeriodView('month', this)">ThĂ¡ng nĂ y</button>
+              <button class="period-btn active" id="periodTodayBtn" onclick="setPeriodView('today', this)">Hôm nay</button>
+              <button class="period-btn" id="periodMonthBtn" onclick="setPeriodView('month', this)">Tháng này</button>
             </div>
             <div class="quick-stats-grid">
-              <div class="quick-stat"><div class="quick-stat-icon">đŸ</div><div class="quick-stat-label">Giao</div><div class="quick-stat-value" id="periodDelOrders">0</div><div class="quick-stat-sub" id="periodDelPoints">0 VNÄ</div></div>
-              <div class="quick-stat"><div class="quick-stat-icon">đŸ“¥</div><div class="quick-stat-label">Láº¥y</div><div class="quick-stat-value" id="periodPickOrders">0</div><div class="quick-stat-sub" id="periodPickPoints">0 VNÄ</div></div>
-              <div class="quick-stat"><div class="quick-stat-icon">đŸ“¦</div><div class="quick-stat-label">HoĂ n</div><div class="quick-stat-value" id="periodRetOrders">0</div><div class="quick-stat-sub" id="periodRetPoints">0 VNÄ</div></div>
+              <div class="quick-stat"><div class="quick-stat-icon">🚚</div><div class="quick-stat-label">Giao</div><div class="quick-stat-value" id="periodDelOrders">0</div><div class="quick-stat-sub" id="periodDelPoints">0 VNĐ</div></div>
+              <div class="quick-stat"><div class="quick-stat-icon">📥</div><div class="quick-stat-label">Lấy</div><div class="quick-stat-value" id="periodPickOrders">0</div><div class="quick-stat-sub" id="periodPickPoints">0 VNĐ</div></div>
+              <div class="quick-stat"><div class="quick-stat-icon">📦</div><div class="quick-stat-label">Hoàn</div><div class="quick-stat-value" id="periodRetOrders">0</div><div class="quick-stat-sub" id="periodRetPoints">0 VNĐ</div></div>
             </div>
           </section>
 
-          <!-- NGĂ€Y CĂ”NG -->
+          <!-- NGÀY CÔNG -->
           <section class="card workday-card">
             <div class="card-head" style="margin-bottom:7px;">
-              <div><h2>đŸ“… NgĂ y CĂ´ng</h2><p>Quy Ä‘á»•i theo sáº£n lÆ°á»£ng trong ngĂ y</p></div>
+              <div><h2>📅 Ngày Công</h2><p>Quy đổi theo sản lượng trong ngày</p></div>
             </div>
             <div class="workday-top">
-              <div class="workday-big"><span id="workdayEffective">0</span> <small>/ <span id="workdayStandard">26</span> ngĂ y</small></div>
-              <div class="workday-remain" id="workdayRemain">CĂ²n 26 ngĂ y</div>
+              <div class="workday-big"><span id="workdayEffective">0</span> <small>/ <span id="workdayStandard">26</span> ngày</small></div>
+              <div class="workday-remain" id="workdayRemain">Còn 26 ngày</div>
             </div>
             <div class="progress-track"><div class="progress-fill" id="workdayProgress"></div></div>
             <div class="workday-detail">
-              <div class="workday-chip"><b id="workdayFull">0</b>NgĂ y chuáº©n</div>
-              <div class="workday-chip"><b id="workdayHalf">0</b>NgĂ y ná»­a cĂ´ng</div>
-              <div class="workday-chip"><b id="workdayActiveDays">0</b>NgĂ y cĂ³ sáº£n lÆ°á»£ng</div>
+              <div class="workday-chip"><b id="workdayFull">0</b>Ngày chuẩn</div>
+              <div class="workday-chip"><b id="workdayHalf">0</b>Ngày nửa công</div>
+              <div class="workday-chip"><b id="workdayActiveDays">0</b>Ngày có sản lượng</div>
             </div>
           </section>
 
-          <!-- BIá»‚U Äá»’ 7 NGĂ€Y -->
+          <!-- BIỂU ĐỒ 7 NGÀY -->
           <section class="card chart-card">
             <div class="card-head" style="margin-bottom:5px;">
-              <div><h2>đŸ“ˆ Sáº£n LÆ°á»£ng 7 NgĂ y Gáº§n Nháº¥t</h2><p>Giao Â· Láº¥y Â· HoĂ n theo tá»«ng ngĂ y</p></div>
+              <div><h2>📈 Sản Lượng 7 Ngày Gần Nhất</h2><p>Giao · Lấy · Hoàn theo từng ngày</p></div>
             </div>
             <div class="chart-wrap" id="sevenDayChartWrap"><canvas id="sevenDayChart"></canvas></div>
-            <div class="chart-legend"><span id="sevenDaySummary">ChÆ°a cĂ³ dá»¯ liá»‡u</span><span>Ä‘Æ¡n/ngĂ y</span></div>
+            <div class="chart-legend"><span id="sevenDaySummary">Chưa có dữ liệu</span><span>đơn/ngày</span></div>
           </section>
 
           <div class="stat-grid-reorganized">
             <div class="stat-card-item type-del">
               <div class="stat-card-head">
-                <span class="stat-card-title">đŸ ÄÆ¡n Giao</span>
-                <span style="font-size:10px; font-weight:700; opacity:0.8;">Báº£ng 5</span>
+                <span class="stat-card-title">🚚 Đơn Giao</span>
+                <span style="font-size:10px; font-weight:700; opacity:0.8;">Bảng 5</span>
               </div>
-              <div class="stat-card-val" id="miniDelPoints">0 VNÄ</div>
+              <div class="stat-card-val" id="miniDelPoints">0 VNĐ</div>
               <div class="stat-card-foot">
-                <span>Sáº£n lÆ°á»£ng:</span>
-                <b id="miniDelOrders">0 Ä‘Æ¡n</b>
+                <span>Sản lượng:</span>
+                <b id="miniDelOrders">0 đơn</b>
               </div>
             </div>
 
             <div class="stat-card-item type-pick">
               <div class="stat-card-head">
-                <span class="stat-card-title">đŸ“¥ ÄÆ¡n Láº¥y</span>
-                <span style="font-size:10px; font-weight:700; opacity:0.8;">Báº£ng 4</span>
+                <span class="stat-card-title">📥 Đơn Lấy</span>
+                <span style="font-size:10px; font-weight:700; opacity:0.8;">Bảng 4</span>
               </div>
-              <div class="stat-card-val" id="miniPickPoints">0 VNÄ</div>
+              <div class="stat-card-val" id="miniPickPoints">0 VNĐ</div>
               <div class="stat-card-foot">
-                <span>Sáº£n lÆ°á»£ng:</span>
-                <b id="miniPickOrders">0 Ä‘Æ¡n</b>
+                <span>Sản lượng:</span>
+                <b id="miniPickOrders">0 đơn</b>
               </div>
             </div>
 
             <div class="stat-card-item type-ret">
               <div class="stat-card-head">
-                <span class="stat-card-title">đŸ“¦ ÄÆ¡n HoĂ n</span>
-                <span style="font-size:10px; font-weight:700; opacity:0.8;">Báº£ng 6</span>
+                <span class="stat-card-title">📦 Đơn Hoàn</span>
+                <span style="font-size:10px; font-weight:700; opacity:0.8;">Bảng 6</span>
               </div>
-              <div class="stat-card-val" id="miniRetPoints">0 VNÄ</div>
+              <div class="stat-card-val" id="miniRetPoints">0 VNĐ</div>
               <div class="stat-card-foot">
-                <span>Sáº£n lÆ°á»£ng:</span>
-                <b id="miniRetOrders">0 Ä‘Æ¡n</b>
+                <span>Sản lượng:</span>
+                <b id="miniRetOrders">0 đơn</b>
               </div>
             </div>
           </div>
@@ -923,46 +923,46 @@
         <section class="card">
           <div class="card-head">
             <div>
-              <h2>đŸ¯ CÆ¡ Há»™i TÄƒng Äiá»ƒm Tiáº¿p Theo</h2>
-              <p>Sá»‘ Ä‘Æ¡n cáº§n thĂªm Ä‘á»ƒ Ä‘áº¡t má»‘c cao hÆ¡n</p>
+              <h2>🎯 Cơ Hội Tăng Điểm Tiếp Theo</h2>
+              <p>Số đơn cần thêm để đạt mốc cao hơn</p>
             </div>
           </div>
           <div class="history-filter-bar" style="margin-bottom:8px;">
-            <button class="filter-btn active" onclick="setOverviewFilter('all', this)">Táº¥t cáº£</button>
-            <button class="filter-btn" onclick="setOverviewFilter('del', this)">đŸ Giao</button>
-            <button class="filter-btn" onclick="setOverviewFilter('pick', this)">đŸ“¥ Láº¥y</button>
-            <button class="filter-btn" onclick="setOverviewFilter('ret', this)">đŸ“¦ HoĂ n</button>
+            <button class="filter-btn active" onclick="setOverviewFilter('all', this)">Tất cả</button>
+            <button class="filter-btn" onclick="setOverviewFilter('del', this)">🚚 Giao</button>
+            <button class="filter-btn" onclick="setOverviewFilter('pick', this)">📥 Lấy</button>
+            <button class="filter-btn" onclick="setOverviewFilter('ret', this)">📦 Hoàn</button>
           </div>
           <div id="overviewMilestoneList"></div>
         </section>
       </main>
     </div>
 
-    <!-- TAB 1: ÄÆ N GIAO -->
+    <!-- TAB 1: ĐƠN GIAO -->
     <div class="tab-panel" id="tab-delivery">
       <main class="app-container">
         <section class="card">
           <div class="overview-box delivery-theme">
             <div>
-              <div class="overview-label">Tá»•ng Äiá»ƒm ÄÆ¡n Giao</div>
-              <div class="overview-value" id="delTotalPoints">0 VNÄ</div>
-              <div class="overview-sub" id="delSummarySub">ChÆ°a cĂ³ báº£n ghi</div>
+              <div class="overview-label">Tổng Điểm Đơn Giao</div>
+              <div class="overview-value" id="delTotalPoints">0 VNĐ</div>
+              <div class="overview-sub" id="delSummarySub">Chưa có bản ghi</div>
             </div>
-            <div class="overview-pill" id="delTotalOrders">0 Ä‘Æ¡n</div>
+            <div class="overview-pill" id="delTotalOrders">0 đơn</div>
           </div>
 
           <div class="card-head">
-            <div><h2>PhĂ¢n Bá»• Sáº£n LÆ°á»£ng ÄÆ¡n Giao</h2></div>
+            <div><h2>Phân Bổ Sản Lượng Đơn Giao</h2></div>
           </div>
 
           <div class="table-scroll">
             <table>
               <thead>
                 <tr>
-                  <th>Khá»‘i lÆ°á»£ng</th>
-                  <th>Sáº£n lÆ°á»£ng</th>
-                  <th>Má»‘c Ä‘áº¡t</th>
-                  <th>Tá»•ng Ä‘iá»ƒm</th>
+                  <th>Khối lượng</th>
+                  <th>Sản lượng</th>
+                  <th>Mốc đạt</th>
+                  <th>Tổng điểm</th>
                 </tr>
               </thead>
               <tbody id="delTableBody"></tbody>
@@ -974,8 +974,8 @@
           <section class="card">
             <div class="card-head">
               <div>
-                <h2>Má»¥c TiĂªu ÄÆ¡n Giao</h2>
-                <p>Sá»‘ Ä‘Æ¡n cáº§n thĂªm Ä‘á»ƒ cháº¡m má»‘c tiáº¿p theo</p>
+                <h2>Mục Tiêu Đơn Giao</h2>
+                <p>Số đơn cần thêm để chạm mốc tiếp theo</p>
               </div>
             </div>
             <div id="delMilestoneList"></div>
@@ -984,31 +984,31 @@
       </main>
     </div>
 
-    <!-- TAB 2: ÄÆ N Láº¤Y -->
+    <!-- TAB 2: ĐƠN LẤY -->
     <div class="tab-panel" id="tab-pickup">
       <main class="app-container">
         <section class="card">
           <div class="overview-box pickup-theme">
             <div>
-              <div class="overview-label">Tá»•ng Äiá»ƒm ÄÆ¡n Láº¥y</div>
-              <div class="overview-value" id="pickTotalPoints">0 VNÄ</div>
-              <div class="overview-sub" id="pickSummarySub">ChÆ°a cĂ³ báº£n ghi</div>
+              <div class="overview-label">Tổng Điểm Đơn Lấy</div>
+              <div class="overview-value" id="pickTotalPoints">0 VNĐ</div>
+              <div class="overview-sub" id="pickSummarySub">Chưa có bản ghi</div>
             </div>
-            <div class="overview-pill" id="pickTotalOrders">0 Ä‘Æ¡n</div>
+            <div class="overview-pill" id="pickTotalOrders">0 đơn</div>
           </div>
 
           <div class="card-head">
-            <div><h2>PhĂ¢n Bá»• Sáº£n LÆ°á»£ng ÄÆ¡n Láº¥y</h2></div>
+            <div><h2>Phân Bổ Sản Lượng Đơn Lấy</h2></div>
           </div>
 
           <div class="table-scroll">
             <table>
               <thead>
                 <tr>
-                  <th>Khá»‘i lÆ°á»£ng</th>
-                  <th>Sáº£n lÆ°á»£ng</th>
-                  <th>Má»‘c Ä‘áº¡t</th>
-                  <th>Tá»•ng Ä‘iá»ƒm</th>
+                  <th>Khối lượng</th>
+                  <th>Sản lượng</th>
+                  <th>Mốc đạt</th>
+                  <th>Tổng điểm</th>
                 </tr>
               </thead>
               <tbody id="pickTableBody"></tbody>
@@ -1020,8 +1020,8 @@
           <section class="card">
             <div class="card-head">
               <div>
-                <h2>Má»¥c TiĂªu ÄÆ¡n Láº¥y</h2>
-                <p>Sá»‘ Ä‘Æ¡n cáº§n thĂªm Ä‘á»ƒ cháº¡m má»‘c tiáº¿p theo</p>
+                <h2>Mục Tiêu Đơn Lấy</h2>
+                <p>Số đơn cần thêm để chạm mốc tiếp theo</p>
               </div>
             </div>
             <div id="pickMilestoneList"></div>
@@ -1030,31 +1030,31 @@
       </main>
     </div>
 
-    <!-- TAB 3: ÄÆ N HOĂ€N -->
+    <!-- TAB 3: ĐƠN HOÀN -->
     <div class="tab-panel" id="tab-return">
       <main class="app-container">
         <section class="card">
           <div class="overview-box return-theme">
             <div>
-              <div class="overview-label">Tá»•ng Äiá»ƒm ÄÆ¡n HoĂ n</div>
-              <div class="overview-value" id="retTotalPoints">0 VNÄ</div>
-              <div class="overview-sub" id="retSummarySub">ChÆ°a cĂ³ báº£n ghi</div>
+              <div class="overview-label">Tổng Điểm Đơn Hoàn</div>
+              <div class="overview-value" id="retTotalPoints">0 VNĐ</div>
+              <div class="overview-sub" id="retSummarySub">Chưa có bản ghi</div>
             </div>
-            <div class="overview-pill" id="retTotalOrders">0 Ä‘Æ¡n</div>
+            <div class="overview-pill" id="retTotalOrders">0 đơn</div>
           </div>
 
           <div class="card-head">
-            <div><h2>PhĂ¢n Bá»• Sáº£n LÆ°á»£ng ÄÆ¡n HoĂ n</h2></div>
+            <div><h2>Phân Bổ Sản Lượng Đơn Hoàn</h2></div>
           </div>
 
           <div class="table-scroll">
             <table>
               <thead>
                 <tr>
-                  <th>Khá»‘i lÆ°á»£ng</th>
-                  <th>Sáº£n lÆ°á»£ng</th>
-                  <th>Má»‘c Ä‘áº¡t</th>
-                  <th>Tá»•ng Ä‘iá»ƒm</th>
+                  <th>Khối lượng</th>
+                  <th>Sản lượng</th>
+                  <th>Mốc đạt</th>
+                  <th>Tổng điểm</th>
                 </tr>
               </thead>
               <tbody id="retTableBody"></tbody>
@@ -1066,8 +1066,8 @@
           <section class="card">
             <div class="card-head">
               <div>
-                <h2>Má»¥c TiĂªu ÄÆ¡n HoĂ n</h2>
-                <p>Sá»‘ Ä‘Æ¡n cáº§n thĂªm Ä‘á»ƒ cháº¡m má»‘c tiáº¿p theo</p>
+                <h2>Mục Tiêu Đơn Hoàn</h2>
+                <p>Số đơn cần thêm để chạm mốc tiếp theo</p>
               </div>
             </div>
             <div id="retMilestoneList"></div>
@@ -1076,23 +1076,23 @@
       </main>
     </div>
 
-    <!-- TAB 4: NHáº¬T KĂ -->
+    <!-- TAB 4: NHẬT KÝ -->
     <div class="tab-panel" id="tab-history">
       <div class="history-container">
         <section class="card">
           <div class="card-head">
             <div>
-              <h2>Nháº­t KĂ½ Nháº­p Liá»‡u</h2>
-              <p id="histCountNote">0 báº£n ghi trong bá»™ nhá»› mĂ¡y</p>
+              <h2>Nhật Ký Nhập Liệu</h2>
+              <p id="histCountNote">0 bản ghi trong bộ nhớ máy</p>
             </div>
-            <button class="btn" style="font-size:11px; padding:4px 8px;" onclick="clearAllHistory()">XĂ³a toĂ n bá»™</button>
+            <button class="btn" style="font-size:11px; padding:4px 8px;" onclick="clearAllHistory()">Xóa toàn bộ</button>
           </div>
 
           <div class="history-filter-bar">
-            <button class="filter-btn active" onclick="setHistFilter('all', this)">Táº¥t cáº£</button>
-            <button class="filter-btn" onclick="setHistFilter('delivery', this)">đŸ Giao</button>
-            <button class="filter-btn" onclick="setHistFilter('pickup', this)">đŸ“¥ Láº¥y</button>
-            <button class="filter-btn" onclick="setHistFilter('return', this)">đŸ“¦ HoĂ n</button>
+            <button class="filter-btn active" onclick="setHistFilter('all', this)">Tất cả</button>
+            <button class="filter-btn" onclick="setHistFilter('delivery', this)">🚚 Giao</button>
+            <button class="filter-btn" onclick="setHistFilter('pickup', this)">📥 Lấy</button>
+            <button class="filter-btn" onclick="setHistFilter('return', this)">📦 Hoàn</button>
           </div>
 
           <div id="historyEntries"></div>
@@ -1102,36 +1102,36 @@
   </div>
 </div>
 
-<!-- MODAL NHáº¬P LIá»†U -->
+<!-- MODAL NHẬP LIỆU -->
 <div class="modal-shade" id="entryModal">
   <div class="modal-box">
     <div class="modal-box-head">
-      <h3>Nháº­p Sáº£n LÆ°á»£ng NgĂ y</h3>
-      <button class="modal-close-btn" onclick="closeModal()">âœ•</button>
+      <h3>Nhập Sản Lượng Ngày</h3>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
-      <!-- QUĂ‰T áº¢NH Ná»˜I Bá»˜ SIĂU Tá»C KHĂ”NG DĂ™NG AI -->
+      <!-- QUÉT ẢNH NỘI BỘ SIÊU TỐC KHÔNG DÙNG AI -->
       <div style="margin-bottom: 12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
         <input type="file" id="localOcrInput" accept="image/*" multiple style="display:none" onchange="processLocalImageScan(this)">
         <button type="button" class="btn btn-primary" onclick="document.getElementById('localOcrInput').click()">
-          đŸ“· QuĂ©t áº£nh tá»± Ä‘á»™ng (Offline)
+          📷 Quét ảnh tự động (Offline)
         </button>
-        <span style="font-size:11px; color:var(--text-muted);">(Tá»± Ä‘á»™ng nháº­n diá»‡n Giao / Láº¥y / Tráº£)</span>
+        <span style="font-size:11px; color:var(--text-muted);">(Tự động nhận diện Giao / Lấy / Trả)</span>
       </div>
 
       <div class="scan-status-banner" id="scanStatusBanner">
-        <span id="scanStatusText">Äang Ä‘á»c sá»‘ liá»‡u trĂªn áº£nh...</span>
+        <span id="scanStatusText">Đang đọc số liệu trên ảnh...</span>
       </div>
 
       <div style="margin-bottom: 12px; max-width: 200px;">
-        <label style="display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:4px;">NgĂ y ghi nháº­n:</label>
+        <label style="display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:4px;">Ngày ghi nhận:</label>
         <input type="date" id="inputDate" class="input-control">
       </div>
       
-      <!-- HĂ€NG 1: ÄÆ N GIAO -->
+      <!-- HÀNG 1: ĐƠN GIAO -->
       <div class="modal-section-card card-del">
         <div class="modal-section-title">
-          <span>đŸ HĂ€NG 1: Sáº¢N LÆ¯á»¢NG ÄÆ N GIAO</span>
+          <span>🚚 HÀNG 1: SẢN LƯỢNG ĐƠN GIAO</span>
         </div>
         <div class="weights-horizontal-grid">
           <div class="weight-input-item"><label>>0 - 2 kg</label><input type="number" inputmode="numeric" id="del_inp_0_2" class="input-control" value="0" min="0"></div>
@@ -1145,10 +1145,10 @@
         </div>
       </div>
 
-      <!-- HĂ€NG 2: ÄÆ N Láº¤Y -->
+      <!-- HÀNG 2: ĐƠN LẤY -->
       <div class="modal-section-card card-pick">
         <div class="modal-section-title">
-          <span>đŸ“¥ HĂ€NG 2: Sáº¢N LÆ¯á»¢NG ÄÆ N Láº¤Y</span>
+          <span>📥 HÀNG 2: SẢN LƯỢNG ĐƠN LẤY</span>
         </div>
         <div class="weights-horizontal-grid">
           <div class="weight-input-item"><label>>0 - 2 kg</label><input type="number" inputmode="numeric" id="pick_inp_0_2" class="input-control" value="0" min="0"></div>
@@ -1162,10 +1162,10 @@
         </div>
       </div>
 
-      <!-- HĂ€NG 3: ÄÆ N HOĂ€N -->
+      <!-- HÀNG 3: ĐƠN HOÀN -->
       <div class="modal-section-card card-ret">
         <div class="modal-section-title">
-          <span>đŸ“¦ HĂ€NG 3: Sáº¢N LÆ¯á»¢NG ÄÆ N HOĂ€N</span>
+          <span>📦 HÀNG 3: SẢN LƯỢNG ĐƠN HOÀN</span>
         </div>
         <div class="weights-horizontal-grid">
           <div class="weight-input-item"><label>>0 - 2 kg</label><input type="number" inputmode="numeric" id="ret_inp_0_2" class="input-control" value="0" min="0"></div>
@@ -1180,14 +1180,14 @@
       </div>
     </div>
     <div class="modal-box-foot">
-      <button class="btn" onclick="closeModal()">Há»§y</button>
-      <button class="btn btn-primary" onclick="saveRecord()">LÆ°u dá»¯ liá»‡u</button>
+      <button class="btn" onclick="closeModal()">Hủy</button>
+      <button class="btn btn-primary" onclick="saveRecord()">Lưu dữ liệu</button>
     </div>
   </div>
 </div>
 
 <script>
-// Tá»° Äá»˜NG KIá»‚M TRA PHIĂN Báº¢N Má»I Tá»ª GITHUB
+// TỰ ĐỘNG KIỂM TRA PHIÊN BẢN MỚI TỪ GITHUB
 async function checkForAppUpdates() {
   try {
     const res = await fetch(`index.html?check=${Date.now()}`, {
@@ -1212,7 +1212,7 @@ async function checkForAppUpdates() {
       }
     }
   } catch (err) {
-    console.log("Bá» qua kiá»ƒm tra update:", err);
+    console.log("Bỏ qua kiểm tra update:", err);
   }
 }
 
@@ -1244,17 +1244,17 @@ function updateThemeBtnUI(theme) {
   const icon = document.getElementById('themeIcon');
   const text = document.getElementById('themeText');
   if (theme === 'dark') {
-    icon.innerText = 'â˜€ï¸';
-    text.innerText = 'SĂ¡ng';
+    icon.innerText = '☀️';
+    text.innerText = 'Sáng';
   } else {
-    icon.innerText = 'đŸŒ™';
-    text.innerText = 'Tá»‘i';
+    icon.innerText = '🌙';
+    text.innerText = 'Tối';
   }
 }
 
 initTheme();
 
-// 1. Dá»® LIá»†U Báº¢NG 5: ÄÆ N GIAO (94 Má»C - VNÄ)
+// 1. DỮ LIỆU BẢNG 5: ĐƠN GIAO (94 MỐC - VNĐ)
 const TABLE_5_DATA = [
   { min: 1, max: 15, range: "1 - 15", pts: [25000, 60000, 60000, 60000, 70000, 90000, 110000, 120000] },
   { min: 15, max: 30, range: "15 - 30", pts: [50000, 110000, 120000, 120000, 150000, 180000, 220000, 240000] },
@@ -1349,10 +1349,10 @@ const TABLE_5_DATA = [
   { min: 11100, max: 11400, range: "11,100 - 11,400", pts: [28125000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000] },
   { min: 11400, max: 11700, range: "11,400 - 11,700", pts: [28850000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000] },
   { min: 11700, max: 12000, range: "11,700 - 12,000", pts: [29575000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000] },
-  { min: 12000, max: Infinity, range: "â‰¥ 12,000", pts: [30300000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000] }
+  { min: 12000, max: Infinity, range: "≥ 12,000", pts: [30300000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000] }
 ];
 
-// 2. Dá»® LIá»†U Báº¢NG 4: ÄÆ N Láº¤Y (46 Má»C - VNÄ)
+// 2. DỮ LIỆU BẢNG 4: ĐƠN LẤY (46 MỐC - VNĐ)
 const TABLE_4_DATA = [
   { min: 1, max: 15, range: "1 - 15", pts: [15000, 30000, 30000, 40000, 40000, 50000, 70000, 80000] },
   { min: 15, max: 30, range: "15 - 30", pts: [25000, 60000, 60000, 60000, 70000, 90000, 110000, 120000] },
@@ -1399,10 +1399,10 @@ const TABLE_4_DATA = [
   { min: 57400, max: 63400, range: "57,400 - 63,400", pts: [24850000, 44725000, 52175000, 54675000, 69575000, 89450000, 100000000, 100000000] },
   { min: 63400, max: 69400, range: "63,400 - 69,400", pts: [27250000, 49050000, 57225000, 59950000, 76300000, 98100000, 100000000, 100000000] },
   { min: 69400, max: 75400, range: "69,400 - 75,400", pts: [29650000, 53375000, 62275000, 65225000, 83025000, 100000000, 100000000, 100000000] },
-  { min: 75400, max: Infinity, range: "â‰¥ 75,400", pts: [33500000, 60300000, 70350000, 73700000, 93800000, 100000000, 100000000, 100000000] }
+  { min: 75400, max: Infinity, range: "≥ 75,400", pts: [33500000, 60300000, 70350000, 73700000, 93800000, 100000000, 100000000, 100000000] }
 ];
 
-// 3. Dá»® LIá»†U Báº¢NG 6: ÄÆ N HOĂ€N (46 Má»C - VNÄ)
+// 3. DỮ LIỆU BẢNG 6: ĐƠN HOÀN (46 MỐC - VNĐ)
 const TABLE_6_DATA = [
   { min: 1, max: 15, range: "1 - 15", pts: [15000, 30000, 30000, 40000, 40000, 50000, 70000, 70000] },
   { min: 15, max: 30, range: "15 - 30", pts: [25000, 60000, 60000, 60000, 70000, 90000, 110000, 120000] },
@@ -1449,7 +1449,7 @@ const TABLE_6_DATA = [
   { min: 57400, max: 63400, range: "57,400 - 63,400", pts: [24850000, 44725000, 52175000, 54675000, 69575000, 89450000, 100000000, 100000000] },
   { min: 63400, max: 69400, range: "63,400 - 69,400", pts: [27250000, 49050000, 57225000, 59950000, 76300000, 98100000, 100000000, 100000000] },
   { min: 69400, max: 75400, range: "69,400 - 75,400", pts: [29650000, 53375000, 62275000, 65225000, 83025000, 100000000, 100000000, 100000000] },
-  { min: 75400, max: Infinity, range: "â‰¥ 75,400", pts: [33500000, 60300000, 70350000, 73700000, 93800000, 100000000, 100000000, 100000000] }
+  { min: 75400, max: Infinity, range: "≥ 75,400", pts: [33500000, 60300000, 70350000, 73700000, 93800000, 100000000, 100000000, 100000000] }
 ];
 
 const WEIGHT_LABELS = [">0 - 2 kg", ">2 - 4 kg", ">4 - 6 kg", ">6 - 8 kg", ">8 - 10 kg", ">10 - 12 kg", ">12 - 15 kg", ">15 kg"];
@@ -1472,7 +1472,7 @@ let currentOverviewFilter = 'all';
 let currentPeriodView = 'today';
 
 function formatPts(n) {
-  return new Intl.NumberFormat('vi-VN').format(Math.round(n)) + ' VNÄ';
+  return new Intl.NumberFormat('vi-VN').format(Math.round(n)) + ' VNĐ';
 }
 
 function getTodayIso() {
@@ -1585,9 +1585,9 @@ function calculateWorkAndDistance(daysInMonth) {
     });
   };
 
-  addOrdersToDate(appData.delivery, 1.0);     // 1 Ä‘Æ¡n giao = 1 quy Ä‘á»•i
-  addOrdersToDate(appData.return, 1.0);       // 1 Ä‘Æ¡n hoĂ n = 1 quy Ä‘á»•i
-  addOrdersToDate(appData.pickup, 1.0 / 6.0); // 6 Ä‘Æ¡n láº¥y = 1 quy Ä‘á»•i
+  addOrdersToDate(appData.delivery, 1.0);     // 1 đơn giao = 1 quy đổi
+  addOrdersToDate(appData.return, 1.0);       // 1 đơn hoàn = 1 quy đổi
+  addOrdersToDate(appData.pickup, 1.0 / 6.0); // 6 đơn lấy = 1 quy đổi
 
   let fullWorkDays = 0;
   let halfWorkDays = 0;
@@ -1680,10 +1680,10 @@ function updatePeriodStats() {
   const p = aggregatePeriodRecords(source.pick, TABLE_4_DATA);
   const r = aggregatePeriodRecords(source.ret, TABLE_6_DATA);
   const total = d.orders + p.orders + r.orders;
-  const title = currentPeriodView === 'today' ? `HĂ´m nay Â· ${formatDateDisplay(today)}` : `ThĂ¡ng ${String(month + 1).padStart(2,'0')}/${year}`;
+  const title = currentPeriodView === 'today' ? `Hôm nay · ${formatDateDisplay(today)}` : `Tháng ${String(month + 1).padStart(2,'0')}/${year}`;
 
   document.getElementById('periodTitle').innerText = title;
-  document.getElementById('periodTotalOrders').innerText = `${total.toLocaleString('vi-VN')} Ä‘Æ¡n`;
+  document.getElementById('periodTotalOrders').innerText = `${total.toLocaleString('vi-VN')} đơn`;
   document.getElementById('periodDelOrders').innerText = d.orders.toLocaleString('vi-VN');
   document.getElementById('periodPickOrders').innerText = p.orders.toLocaleString('vi-VN');
   document.getElementById('periodRetOrders').innerText = r.orders.toLocaleString('vi-VN');
@@ -1699,7 +1699,7 @@ function updateWorkdayCard(workStats, daysInMonth) {
   const progress = Math.min(100, (effective / standard) * 100);
   document.getElementById('workdayEffective').innerText = effective % 1 === 0 ? effective : effective.toFixed(1);
   document.getElementById('workdayStandard').innerText = standard;
-  document.getElementById('workdayRemain').innerText = remaining > 0 ? `CĂ²n ${remaining % 1 === 0 ? remaining : remaining.toFixed(1)} ngĂ y` : 'ÄĂ£ Ä‘á»§ ngĂ y tiĂªu chuáº©n';
+  document.getElementById('workdayRemain').innerText = remaining > 0 ? `Còn ${remaining % 1 === 0 ? remaining : remaining.toFixed(1)} ngày` : 'Đã đủ ngày tiêu chuẩn';
   document.getElementById('workdayProgress').style.width = `${progress}%`;
   document.getElementById('workdayFull').innerText = workStats.fullWorkDays;
   document.getElementById('workdayHalf').innerText = workStats.halfWorkDays;
@@ -1777,8 +1777,8 @@ function drawSevenDayChart() {
   };
   // Use CSS theme colors already defined by the app.
   drawLine(series.del, '--glass-violet-text', 'Giao', 0);
-  drawLine(series.pick, '--glass-sky-text', 'Láº¥y', 0);
-  drawLine(series.ret, '--glass-amber-text', 'HoĂ n', 0);
+  drawLine(series.pick, '--glass-sky-text', 'Lấy', 0);
+  drawLine(series.ret, '--glass-amber-text', 'Hoàn', 0);
 
   ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim();
   ctx.textAlign='center'; ctx.textBaseline='top';
@@ -1789,7 +1789,7 @@ function drawSevenDayChart() {
 
   const total7 = all.reduce((a,b)=>a+b,0);
   const avg = Math.round(total7 / 7);
-  document.getElementById('sevenDaySummary').innerText = `7 ngĂ y: ${total7.toLocaleString('vi-VN')} Ä‘Æ¡n Â· TB ${avg.toLocaleString('vi-VN')} Ä‘Æ¡n/ngĂ y`;
+  document.getElementById('sevenDaySummary').innerText = `7 ngày: ${total7.toLocaleString('vi-VN')} đơn · TB ${avg.toLocaleString('vi-VN')} đơn/ngày`;
 }
 
 function getRecordOrderCountByDate(type, date) {
@@ -1868,7 +1868,7 @@ function updateAllViews() {
     pickGrandPoints += pTier.matched.pt;
     retGrandPoints += rTier.matched.pt;
 
-    // Tab ÄÆ¡n Giao
+    // Tab Đơn Giao
     const dTr = document.createElement('tr');
     dTr.innerHTML = `
       <td class="weight-name">${WEIGHT_LABELS[colIdx]}</td>
@@ -1887,15 +1887,15 @@ function updateAllViews() {
       delSuggBox.innerHTML += `
         <div class="suggestion-item">
           <div class="sugg-left">
-            <h4>${WEIGHT_LABELS[colIdx]} Â· ${dOrders.toLocaleString('vi-VN')} Ä‘Æ¡n (Äang má»‘c ${dTier.matched.range})</h4>
-            <p>Cáº§n thĂªm <b>+${need.toLocaleString('vi-VN')}</b> Ä‘Æ¡n Ä‘á»ƒ Ä‘áº¡t má»‘c ${dTier.next.range}</p>
+            <h4>${WEIGHT_LABELS[colIdx]} · ${dOrders.toLocaleString('vi-VN')} đơn (Đang mốc ${dTier.matched.range})</h4>
+            <p>Cần thêm <b>+${need.toLocaleString('vi-VN')}</b> đơn để đạt mốc ${dTier.next.range}</p>
           </div>
           <div class="sugg-points">+${formatPts(diff)}</div>
         </div>
       `;
     }
 
-    // Tab ÄÆ¡n Láº¥y
+    // Tab Đơn Lấy
     const pTr = document.createElement('tr');
     pTr.innerHTML = `
       <td class="weight-name">${WEIGHT_LABELS[colIdx]}</td>
@@ -1914,15 +1914,15 @@ function updateAllViews() {
       pickSuggBox.innerHTML += `
         <div class="suggestion-item">
           <div class="sugg-left">
-            <h4>${WEIGHT_LABELS[colIdx]} Â· ${pOrders.toLocaleString('vi-VN')} Ä‘Æ¡n (Äang má»‘c ${pTier.matched.range})</h4>
-            <p>Cáº§n thĂªm <b>+${need.toLocaleString('vi-VN')}</b> Ä‘Æ¡n Ä‘á»ƒ Ä‘áº¡t má»‘c ${pTier.next.range}</p>
+            <h4>${WEIGHT_LABELS[colIdx]} · ${pOrders.toLocaleString('vi-VN')} đơn (Đang mốc ${pTier.matched.range})</h4>
+            <p>Cần thêm <b>+${need.toLocaleString('vi-VN')}</b> đơn để đạt mốc ${pTier.next.range}</p>
           </div>
           <div class="sugg-points">+${formatPts(diff)}</div>
         </div>
       `;
     }
 
-    // Tab ÄÆ¡n HoĂ n
+    // Tab Đơn Hoàn
     const rTr = document.createElement('tr');
     rTr.innerHTML = `
       <td class="weight-name">${WEIGHT_LABELS[colIdx]}</td>
@@ -1941,21 +1941,21 @@ function updateAllViews() {
       retSuggBox.innerHTML += `
         <div class="suggestion-item">
           <div class="sugg-left">
-            <h4>${WEIGHT_LABELS[colIdx]} Â· ${rOrders.toLocaleString('vi-VN')} Ä‘Æ¡n (Äang má»‘c ${rTier.matched.range})</h4>
-            <p>Cáº§n thĂªm <b>+${need.toLocaleString('vi-VN')}</b> Ä‘Æ¡n Ä‘á»ƒ Ä‘áº¡t má»‘c ${rTier.next.range}</p>
+            <h4>${WEIGHT_LABELS[colIdx]} · ${rOrders.toLocaleString('vi-VN')} đơn (Đang mốc ${rTier.matched.range})</h4>
+            <p>Cần thêm <b>+${need.toLocaleString('vi-VN')}</b> đơn để đạt mốc ${rTier.next.range}</p>
           </div>
           <div class="sugg-points">+${formatPts(diff)}</div>
         </div>
       `;
     }
 
-    // Má»¥c tiĂªu tab Tá»•ng Quan
+    // Mục tiêu tab Tổng Quan
     if (dOrders > 0 && dTier.next && isFinite(dTier.matched.maxA)) {
       overviewSuggBox.innerHTML += `
         <div class="suggestion-item sugg-del">
           <div class="sugg-left">
-            <h4><span class="sugg-type-badge sugg-type-del">GIAO</span> ${WEIGHT_LABELS[colIdx]} Â· ${dOrders.toLocaleString('vi-VN')} Ä‘Æ¡n (Äang ${dTier.matched.range})</h4>
-            <p>Cáº§n thĂªm <b>+${((dTier.matched.maxA - dOrders) + 1).toLocaleString('vi-VN')}</b> Ä‘Æ¡n Ä‘á»ƒ cháº¡m má»‘c ${dTier.next.range}</p>
+            <h4><span class="sugg-type-badge sugg-type-del">GIAO</span> ${WEIGHT_LABELS[colIdx]} · ${dOrders.toLocaleString('vi-VN')} đơn (Đang ${dTier.matched.range})</h4>
+            <p>Cần thêm <b>+${((dTier.matched.maxA - dOrders) + 1).toLocaleString('vi-VN')}</b> đơn để chạm mốc ${dTier.next.range}</p>
           </div>
           <div class="sugg-points">+${formatPts(dTier.next.pt - dTier.matched.pt)}</div>
         </div>
@@ -1965,8 +1965,8 @@ function updateAllViews() {
       overviewSuggBox.innerHTML += `
         <div class="suggestion-item sugg-pick">
           <div class="sugg-left">
-            <h4><span class="sugg-type-badge sugg-type-pick">Láº¤Y</span> ${WEIGHT_LABELS[colIdx]} Â· ${pOrders.toLocaleString('vi-VN')} Ä‘Æ¡n (Äang ${pTier.matched.range})</h4>
-            <p>Cáº§n thĂªm <b>+${((pTier.matched.maxA - pOrders) + 1).toLocaleString('vi-VN')}</b> Ä‘Æ¡n Ä‘á»ƒ cháº¡m má»‘c ${pTier.next.range}</p>
+            <h4><span class="sugg-type-badge sugg-type-pick">LẤY</span> ${WEIGHT_LABELS[colIdx]} · ${pOrders.toLocaleString('vi-VN')} đơn (Đang ${pTier.matched.range})</h4>
+            <p>Cần thêm <b>+${((pTier.matched.maxA - pOrders) + 1).toLocaleString('vi-VN')}</b> đơn để chạm mốc ${pTier.next.range}</p>
           </div>
           <div class="sugg-points">+${formatPts(pTier.next.pt - pTier.matched.pt)}</div>
         </div>
@@ -1976,8 +1976,8 @@ function updateAllViews() {
       overviewSuggBox.innerHTML += `
         <div class="suggestion-item sugg-ret">
           <div class="sugg-left">
-            <h4><span class="sugg-type-badge sugg-type-ret">HOĂ€N</span> ${WEIGHT_LABELS[colIdx]} Â· ${rOrders.toLocaleString('vi-VN')} Ä‘Æ¡n (Äang ${rTier.matched.range})</h4>
-            <p>Cáº§n thĂªm <b>+${((rTier.matched.maxA - rOrders) + 1).toLocaleString('vi-VN')}</b> Ä‘Æ¡n Ä‘á»ƒ cháº¡m má»‘c ${rTier.next.range}</p>
+            <h4><span class="sugg-type-badge sugg-type-ret">HOÀN</span> ${WEIGHT_LABELS[colIdx]} · ${rOrders.toLocaleString('vi-VN')} đơn (Đang ${rTier.matched.range})</h4>
+            <p>Cần thêm <b>+${((rTier.matched.maxA - rOrders) + 1).toLocaleString('vi-VN')}</b> đơn để chạm mốc ${rTier.next.range}</p>
           </div>
           <div class="sugg-points">+${formatPts(rTier.next.pt - rTier.matched.pt)}</div>
         </div>
@@ -2011,7 +2011,7 @@ function updateAllViews() {
 
   document.getElementById('overallProductionPoints').innerText = formatPts(totalProductionPoints);
   document.getElementById('overallDistanceWorkPoints').innerText = formatPts(distanceAndWorkPoints);
-  document.getElementById('workDaysSummaryDetail').innerText = `(${workStats.fullWorkDays} ngĂ y cĂ´ng chuáº©n Â· ${workStats.halfWorkDays} ngĂ y ná»­a cĂ´ng | ${daysInCurrentMonth - 4} ngĂ y tiĂªu chuáº©n)`;
+  document.getElementById('workDaysSummaryDetail').innerText = `(${workStats.fullWorkDays} ngày công chuẩn · ${workStats.halfWorkDays} ngày nửa công | ${daysInCurrentMonth - 4} ngày tiêu chuẩn)`;
   document.getElementById('overallRankBonusPoints').innerText = formatPts(rankBonusPoints);
   document.getElementById('overallGrandTotalPoints').innerText = formatPts(grandTotalPoints);
 
@@ -2022,36 +2022,36 @@ function updateAllViews() {
     document.getElementById('ratioBarDel').style.width = pDel + '%';
     document.getElementById('ratioBarPick').style.width = pPick + '%';
     document.getElementById('ratioBarRet').style.width = pRet + '%';
-    document.getElementById('ratioText').innerText = `${pDel}% Giao Â· ${pPick}% Láº¥y Â· ${pRet}% HoĂ n`;
+    document.getElementById('ratioText').innerText = `${pDel}% Giao · ${pPick}% Lấy · ${pRet}% Hoàn`;
   } else {
     document.getElementById('ratioBarDel').style.width = '33.3%';
     document.getElementById('ratioBarPick').style.width = '33.3%';
     document.getElementById('ratioBarRet').style.width = '33.4%';
-    document.getElementById('ratioText').innerText = '0% Giao Â· 0% Láº¥y Â· 0% HoĂ n';
+    document.getElementById('ratioText').innerText = '0% Giao · 0% Lấy · 0% Hoàn';
   }
 
   document.getElementById('miniDelPoints').innerText = formatPts(delGrandPoints);
-  document.getElementById('miniDelOrders').innerText = `${delGrandOrders.toLocaleString('vi-VN')} Ä‘Æ¡n`;
+  document.getElementById('miniDelOrders').innerText = `${delGrandOrders.toLocaleString('vi-VN')} đơn`;
 
   document.getElementById('miniPickPoints').innerText = formatPts(pickGrandPoints);
-  document.getElementById('miniPickOrders').innerText = `${pickGrandOrders.toLocaleString('vi-VN')} Ä‘Æ¡n`;
+  document.getElementById('miniPickOrders').innerText = `${pickGrandOrders.toLocaleString('vi-VN')} đơn`;
 
   document.getElementById('miniRetPoints').innerText = formatPts(retGrandPoints);
-  document.getElementById('miniRetOrders').innerText = `${retGrandOrders.toLocaleString('vi-VN')} Ä‘Æ¡n`;
+  document.getElementById('miniRetOrders').innerText = `${retGrandOrders.toLocaleString('vi-VN')} đơn`;
 
   document.getElementById('delTotalPoints').innerText = formatPts(delGrandPoints);
-  document.getElementById('delTotalOrders').innerText = `${delGrandOrders.toLocaleString('vi-VN')} Ä‘Æ¡n`;
+  document.getElementById('delTotalOrders').innerText = `${delGrandOrders.toLocaleString('vi-VN')} đơn`;
   document.getElementById('delSummarySub').innerText = appData.delivery.length > 0 ? `` : '';
 
   document.getElementById('pickTotalPoints').innerText = formatPts(pickGrandPoints);
-  document.getElementById('pickTotalOrders').innerText = `${pickGrandOrders.toLocaleString('vi-VN')} Ä‘Æ¡n`;
+  document.getElementById('pickTotalOrders').innerText = `${pickGrandOrders.toLocaleString('vi-VN')} đơn`;
   document.getElementById('pickSummarySub').innerText = appData.pickup.length > 0 ? `` : '';
 
   document.getElementById('retTotalPoints').innerText = formatPts(retGrandPoints);
-  document.getElementById('retTotalOrders').innerText = `${retGrandOrders.toLocaleString('vi-VN')} Ä‘Æ¡n`;
+  document.getElementById('retTotalOrders').innerText = `${retGrandOrders.toLocaleString('vi-VN')} đơn`;
   document.getElementById('retSummarySub').innerText = (appData.return || []).length > 0 ? `` : '';
 
-  document.getElementById('histCountNote').innerText = `${totalDaysCount} báº£n ghi trong bá»™ nhá»› mĂ¡y`;
+  document.getElementById('histCountNote').innerText = `${totalDaysCount} bản ghi trong bộ nhớ máy`;
 
   renderHistory();
   localStorage.setItem('spx_dual_records', JSON.stringify(appData));
@@ -2082,7 +2082,7 @@ function renderHistory() {
   list.sort((a, b) => b.id - a.id);
 
   if (list.length === 0) {
-    container.innerHTML = '<div style="font-size:12px; color:var(--text-muted); text-align:center; padding:24px;">ChÆ°a cĂ³ lá»‹ch sá»­.</div>';
+    container.innerHTML = '<div style="font-size:12px; color:var(--text-muted); text-align:center; padding:24px;">Chưa có lịch sử.</div>';
     return;
   }
 
@@ -2097,8 +2097,8 @@ function renderHistory() {
 
     let tagClass = 'tag-delivery';
     let tagText = 'Giao';
-    if (r.type === 'pickup') { tagClass = 'tag-pickup'; tagText = 'Láº¥y'; }
-    if (r.type === 'return') { tagClass = 'tag-return'; tagText = 'HoĂ n'; }
+    if (r.type === 'pickup') { tagClass = 'tag-pickup'; tagText = 'Lấy'; }
+    if (r.type === 'return') { tagClass = 'tag-return'; tagText = 'Hoàn'; }
 
     const div = document.createElement('div');
     div.className = 'history-entry';
@@ -2106,11 +2106,11 @@ function renderHistory() {
       <div>
         <div class="hist-meta">
           <span class="hist-badge-tag ${tagClass}">${tagText}</span>
-          ${formatDateDisplay(r.date)} Â· <span>${dayTotal.toLocaleString('vi-VN')} Ä‘Æ¡n</span>
+          ${formatDateDisplay(r.date)} · <span>${dayTotal.toLocaleString('vi-VN')} đơn</span>
         </div>
-        <div class="hist-detail">${parts.join(' â€¢ ') || '0 Ä‘Æ¡n'}</div>
+        <div class="hist-detail">${parts.join(' • ') || '0 đơn'}</div>
       </div>
-      <button class="hist-del-btn" title="XĂ³a" onclick="deleteRecord('${r.type}', ${r.id})">âœ• XĂ³a</button>
+      <button class="hist-del-btn" title="Xóa" onclick="deleteRecord('${r.type}', ${r.id})">✕ Xóa</button>
     `;
     container.appendChild(div);
   });
@@ -2132,7 +2132,7 @@ function closeModal() {
   document.getElementById('entryModal').classList.remove('active');
 }
 /* =========================================================
-   Bá»˜ Xá»¬ LĂ QUĂ‰T áº¢NH Ná»˜I Bá»˜ (PHĂ‚N TĂCH THEO DĂ’NG & TOáº  Äá»˜)
+   BỘ XỬ LÝ QUÉT ẢNH NỘI BỘ (PHÂN TÍCH THEO DÒNG & TOẠ ĐỘ)
 ========================================================= */
 function loadImageFromFile(file) {
   return new Promise((resolve, reject) => {
@@ -2150,16 +2150,16 @@ function loadImageFromFile(file) {
 
 /* =========================================================
    OCR OFFLINE - MULTI PASS
-   KhĂ´ng phĂ¡ áº£nh gá»‘c. Táº¡o nhiá»u báº£n OCR tá»« cĂ¹ng má»™t áº£nh rá»“i
-   Ä‘á»‘i chiáº¿u káº¿t quáº£ thay vĂ¬ tin má»™t láº§n nháº­n dáº¡ng duy nháº¥t.
+   Không phá ảnh gốc. Tạo nhiều bản OCR từ cùng một ảnh rồi
+   đối chiếu kết quả thay vì tin một lần nhận dạng duy nhất.
 ========================================================= */
 function preprocessImage(file) {
   return loadImageFromFile(file).then(img => {
-    // KhĂ´ng Ă©p áº£nh xuá»‘ng 1600px ná»¯a. OCR sá»‘ nhá» ráº¥t dá»… máº¥t nĂ©t.
-    // Chá»‰ giá»›i háº¡n áº£nh cá»±c lá»›n Ä‘á»ƒ trĂ¡nh ngá»‘n RAM trĂªn Ä‘iá»‡n thoáº¡i.
+    // Không ép ảnh xuống 1600px nữa. OCR số nhỏ rất dễ mất nét.
+    // Chỉ giới hạn ảnh cực lớn để tránh ngốn RAM trên điện thoại.
     const maxDim = 3200;
     let scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-    // Náº¿u áº£nh nhá», phĂ³ng 1.5x Ä‘á»ƒ sá»‘ trong báº£ng cĂ³ thĂªm pixel.
+    // Nếu ảnh nhỏ, phóng 1.5x để số trong bảng có thêm pixel.
     if (Math.max(img.width, img.height) < 1800) scale = Math.min(1.5, maxDim / Math.max(img.width, img.height));
 
     const w = Math.max(1, Math.round(img.width * scale));
@@ -2184,13 +2184,13 @@ function preprocessImage(file) {
     const data = gctx.getImageData(0, 0, w, h);
     const d = data.data;
     for (let i = 0; i < d.length; i += 4) {
-      // Giá»¯ grayscale má»m, KHĂ”NG threshold ngay.
+      // Giữ grayscale mềm, KHÔNG threshold ngay.
       const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
       d[i] = d[i + 1] = d[i + 2] = lum;
     }
     gctx.putImageData(data, 0, 0);
 
-    // Báº£n tÆ°Æ¡ng pháº£n: chá»¯ Ä‘en rĂµ nhÆ°ng váº«n giá»¯ nĂ©t máº£nh.
+    // Bản tương phản: chữ đen rõ nhưng vẫn giữ nét mảnh.
     const contrast = document.createElement('canvas');
     contrast.width = w; contrast.height = h;
     const cctx = contrast.getContext('2d', { willReadFrequently: true });
@@ -2204,7 +2204,7 @@ function preprocessImage(file) {
     }
     cctx.putImageData(cd, 0, 0);
 
-    // Báº£n threshold nháº¹ dĂ¹ng cho chá»¯/sá»‘ bá»‹ ná»n mĂ u lĂ m nhiá»…u.
+    // Bản threshold nhẹ dùng cho chữ/số bị nền màu làm nhiễu.
     const binary = document.createElement('canvas');
     binary.width = w; binary.height = h;
     const bctx = binary.getContext('2d', { willReadFrequently: true });
@@ -2224,8 +2224,8 @@ function normalizeOcrText(text) {
   return (text || '')
     .toLowerCase()
     .replace(/[|]/g, '1')
-    .replace(/[â€œâ€]/g, '"')
-    .replace(/[â€“â€”]/g, '-')
+    .replace(/[“”]/g, '"')
+    .replace(/[–—]/g, '-')
     .replace(/,/g, '.')
     .replace(/\s+/g, ' ')
     .trim();
@@ -2233,9 +2233,9 @@ function normalizeOcrText(text) {
 
 function detectScanPrefix(text) {
   const t = normalizeOcrText(text);
-  const hasPick = /\b(Ä‘Ă£\s*láº¥y|da\s*lay|láº¥y hĂ ng|lay hang|pickup)\b/.test(t);
-  const hasReturn = /\b(Ä‘Ă£\s*tráº£|da\s*tra|tráº£ hĂ ng|tra hang|hoĂ n hĂ ng|hoan hang|return)\b/.test(t);
-  const hasDelivery = /\b(Ä‘Ă£\s*giao|da\s*giao|giao hĂ ng|giao hang|delivery)\b/.test(t);
+  const hasPick = /\b(đã\s*lấy|da\s*lay|lấy hàng|lay hang|pickup)\b/.test(t);
+  const hasReturn = /\b(đã\s*trả|da\s*tra|trả hàng|tra hang|hoàn hàng|hoan hang|return)\b/.test(t);
+  const hasDelivery = /\b(đã\s*giao|da\s*giao|giao hàng|giao hang|delivery)\b/.test(t);
 
   if (hasReturn && !hasDelivery) return 'ret_inp';
   if (hasPick && !hasDelivery) return 'pick_inp';
@@ -2257,7 +2257,7 @@ function lineLooksLikeWeightRange(text, range) {
   const t = normalizeOcrText(text).replace(/\s+/g, '');
   const min = String(range.min).replace('.', '[.,]');
   const max = range.max ? String(range.max).replace('.', '[.,]') : null;
-  // Cháº¥p nháº­n OCR lá»‡ch khoáº£ng tráº¯ng/dáº¥u cháº¥m/pháº©y á»Ÿ dáº£i cĂ¢n.
+  // Chấp nhận OCR lệch khoảng trắng/dấu chấm/phẩy ở dải cân.
   if (new RegExp(min).test(t)) return true;
   if (max && new RegExp(max).test(t)) return true;
   return false;
@@ -2265,7 +2265,7 @@ function lineLooksLikeWeightRange(text, range) {
 
 function extractIntegerCandidates(text) {
   const t = normalizeOcrText(text);
-  // Loáº¡i cĂ¡c sá»‘ tháº­p phĂ¢n trÆ°á»›c khi láº¥y sá»‘ lÆ°á»£ng Ä‘Æ¡n.
+  // Loại các số thập phân trước khi lấy số lượng đơn.
   const withoutDecimals = t.replace(/\d+\s*[.,]\s*\d+/g, ' ');
   return (withoutDecimals.match(/\b\d{1,5}\b/g) || []).map(Number).filter(n => n >= 0 && n <= 99999);
 }
@@ -2277,14 +2277,14 @@ function quantitiesFromOcr(ocrData, range) {
   for (let i = 0; i < lines.length; i++) {
     if (!lineLooksLikeWeightRange(lines[i].text, range)) continue;
 
-    // Æ¯u tiĂªn cĂ¹ng dĂ²ng; náº¿u OCR tĂ¡ch báº£ng thĂ nh nhiá»u dĂ²ng thĂ¬ thá»­ Â±2 dĂ²ng.
+    // Ưu tiên cùng dòng; nếu OCR tách bảng thành nhiều dòng thì thử ±2 dòng.
     for (const offset of [0, 1, -1, 2, -2]) {
       const idx = i + offset;
       if (idx < 0 || idx >= lines.length) continue;
       const nums = extractIntegerCandidates(lines[idx].text);
       for (const n of nums) {
-        // CĂ¡c sá»‘ 0/1/2... trong tiĂªu Ä‘á»/dáº£i cĂ¢n khĂ´ng Ä‘Ă¡ng tin báº±ng sá»‘ lÆ°á»£ng.
-        // Láº¥y á»©ng viĂªn cuá»‘i cĂ¹ng cá»§a dĂ²ng, vĂ¬ cá»™t sá»‘ lÆ°á»£ng thÆ°á»ng náº±m bĂªn pháº£i.
+        // Các số 0/1/2... trong tiêu đề/dải cân không đáng tin bằng số lượng.
+        // Lấy ứng viên cuối cùng của dòng, vì cột số lượng thường nằm bên phải.
         if (n >= 0) hits.push(n);
       }
       if (nums.length) break;
@@ -2335,10 +2335,10 @@ async function processLocalImageScan(input) {
 
   for (let i = 0; i < files.length; i++) {
     try {
-      statusText.innerText = `â¡ Chuáº©n bá»‹ áº£nh ${i + 1}/${files.length}...`;
+      statusText.innerText = `⚡ Chuẩn bị ảnh ${i + 1}/${files.length}...`;
       const prepared = await preprocessImage(files[i]);
 
-      // 3 báº£n áº£nh Ă— 2 cháº¿ Ä‘á»™ bá»‘ cá»¥c. Báº£n gá»‘c giĂºp trĂ¡nh máº¥t nĂ©t do threshold.
+      // 3 bản ảnh × 2 chế độ bố cục. Bản gốc giúp tránh mất nét do threshold.
       const passes = [
         { canvas: prepared.original, psm: 6 },
         { canvas: prepared.gray, psm: 6 },
@@ -2348,23 +2348,23 @@ async function processLocalImageScan(input) {
 
       const results = [];
       for (let p = 0; p < passes.length; p++) {
-        statusText.innerText = `đŸ” OCR áº£nh ${i + 1}/${files.length} â€” lÆ°á»£t ${p + 1}/${passes.length}...`;
+        statusText.innerText = `🔎 OCR ảnh ${i + 1}/${files.length} — lượt ${p + 1}/${passes.length}...`;
         try {
           const result = await runOcrPass(passes[p].canvas, passes[p].psm);
           results.push(result.data);
         } catch (e) {
-          console.warn('OCR pass lá»—i:', e);
+          console.warn('OCR pass lỗi:', e);
         }
       }
 
-      if (!results.length) throw new Error('KhĂ´ng cĂ³ káº¿t quáº£ OCR');
+      if (!results.length) throw new Error('Không có kết quả OCR');
 
       const allText = results.map(r => r.text || '').join('\n');
       const prefix = detectScanPrefix(allText);
       const detectedDate = extractOcrDate(allText);
       if (detectedDate) document.getElementById('inputDate').value = detectedDate;
 
-      // Má»—i lÆ°á»£t OCR cho má»™t á»©ng viĂªn. Chá»n giĂ¡ trá»‹ xuáº¥t hiá»‡n á»•n Ä‘á»‹nh nháº¥t.
+      // Mỗi lượt OCR cho một ứng viên. Chọn giá trị xuất hiện ổn định nhất.
       weightMap.forEach(range => {
         const candidates = [];
         results.forEach(r => {
@@ -2384,11 +2384,11 @@ async function processLocalImageScan(input) {
         confidence: results.map(r => r.confidence)
       });
     } catch (err) {
-      console.error('Lá»—i Ä‘á»c áº£nh:', err);
+      console.error('Lỗi đọc ảnh:', err);
     }
   }
 
-  statusText.innerText = `âœ“ ÄĂ£ quĂ©t xong! HĂ£y kiá»ƒm tra láº¡i sá»‘ liá»‡u trÆ°á»›c khi LÆ°u.`;
+  statusText.innerText = `✓ Đã quét xong! Hãy kiểm tra lại số liệu trước khi Lưu.`;
   setTimeout(() => { banner.style.display = 'none'; }, 3500);
   input.value = '';
 }
@@ -2433,7 +2433,7 @@ function saveRecord() {
 }
 
 function deleteRecord(type, id) {
-  if (confirm("Báº¡n muá»‘n xĂ³a báº£n ghi ngĂ y nĂ y?")) {
+  if (confirm("Bạn muốn xóa bản ghi ngày này?")) {
     appData[type] = appData[type].filter(item => item.id !== id);
     updateAllViews();
   }
@@ -2442,7 +2442,7 @@ function deleteRecord(type, id) {
 function clearAllHistory() {
   const totalEntries = appData.delivery.length + appData.pickup.length + (appData.return || []).length;
   if (totalEntries === 0) return;
-  if (confirm("Báº¡n cháº¯c cháº¯n muá»‘n xĂ³a toĂ n bá»™ lá»‹ch sá»­?")) {
+  if (confirm("Bạn chắc chắn muốn xóa toàn bộ lịch sử?")) {
     appData = { delivery: [], pickup: [], return: [] };
     updateAllViews();
   }
@@ -2450,7 +2450,7 @@ function clearAllHistory() {
 
 window.addEventListener('resize', () => { if (currentActiveTab === 'overview') drawSevenDayChart(); });
 
-// Khá»Ÿi cháº¡y
+// Khởi chạy
 updateAllViews();
 </script>
 </body>

@@ -252,6 +252,30 @@
     font-weight: 700;
     color: var(--text-secondary);
     white-space: nowrap;
+    min-width: 0;
+  }
+  .distance-allowance-wrap {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 0 0 145px;
+    min-width: 0;
+  }
+  .distance-allowance-input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 5px 7px;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: right;
+  }
+  .distance-allowance-unit {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
   }
   .select-control {
     background: var(--glass-subtle);
@@ -327,6 +351,9 @@
   }
   @media (max-width: 480px) {
     .stat-grid-reorganized { grid-template-columns: 1fr; }
+    .hero-rank-row { gap: 8px; }
+    .hero-rank-row label { white-space: normal; line-height: 1.25; }
+    .distance-allowance-wrap { flex-basis: 145px; }
   }
 
   .stat-card-item {
@@ -823,9 +850,9 @@
 
               <div class="hero-rank-row" style="border-top:1px dashed var(--glass-border-subtle); padding-top:6px;">
                 <label for="distanceAllowanceInput">📍 Phụ cấp khoảng cách tháng:</label>
-                <div style="display:flex; align-items:center; gap:4px;">
-                  <input type="number" id="distanceAllowanceInput" class="input-control" style="width:120px; padding:4px 8px; font-size:13px; font-weight:700; text-align:right;" value="1000000" oninput="onDistanceAllowanceChange(this.value)">
-                  <span style="font-size:11px; font-weight:700; color:var(--text-muted);">VNĐ</span>
+                <div class="distance-allowance-wrap">
+                  <input type="number" id="distanceAllowanceInput" class="input-control distance-allowance-input" value="1000000" oninput="onDistanceAllowanceChange(this.value)">
+                  <span class="distance-allowance-unit">VNĐ</span>
                 </div>
               </div>
             </div>

@@ -4,6 +4,7 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="app-build-ver" content="2026.09.11.01">
 <title>SPX Chi Linh 2 - Tính Điểm Sản Lượng</title>
 <style>
   :root {
@@ -12,9 +13,6 @@
                    radial-gradient(at 100% 100%, #dcfce7 0px, transparent 50%),
                    radial-gradient(at 0% 100%, #e0f2fe 0px, transparent 50%),
                    #f8fafc;
-    --glass-violet-text: #6d28d9;
-    --glass-sky-text: #0284c7;
-    --glass-amber-text: #d97706;
     --glass-surface: rgba(255, 255, 255, 0.85);
     --glass-subtle: rgba(255, 255, 255, 0.6);
     --glass-border: rgba(255, 255, 255, 0.85);
@@ -663,7 +661,7 @@
     justify-content: space-between;
   }
 
-  /* UPDATE NOTIFY BANNER */
+  /* UPDATE TOAST BANNER */
   .update-bar-toast {
     position: fixed;
     top: 60px;
@@ -676,10 +674,8 @@
     padding: 10px 14px;
     border-radius: var(--radius-md);
     box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-    z-index: 999;
+    z-index: 99;
     display: none;
-    align-items: center;
-    justify-content: space-between;
     font-size: 13px;
     font-weight: 600;
   }
@@ -689,7 +685,7 @@
     .modal-box { border-radius: var(--radius-lg); border-bottom: 1px solid var(--glass-border); }
   }
 
-  /* ===== NEW OVERVIEW ENHANCEMENTS ===== */
+  /* QUICK PERIOD / STATS */
   .quick-period-card { margin-top: 12px; }
   .period-switch { display:flex; gap:6px; margin-bottom:10px; }
   .period-btn { flex:1; padding:7px 8px; border:1px solid var(--glass-border-subtle); border-radius:8px; background:var(--glass-subtle); color:var(--text-secondary); font-size:11px; font-weight:700; cursor:pointer; }
@@ -714,34 +710,29 @@
   .chart-wrap { position:relative; height:190px; width:100%; }
   .chart-wrap canvas { width:100%; height:100%; display:block; }
   .chart-legend { display:flex; justify-content:space-between; align-items:center; margin-top:6px; font-size:10px; color:var(--text-muted); }
-  .chart-summary { font-size:11px; color:var(--text-secondary); font-weight:600; }
-  .chart-empty { display:flex; align-items:center; justify-content:center; height:100%; color:var(--text-muted); font-size:12px; text-align:center; }
   @media (max-width:480px) {
     .quick-stats-grid { gap:5px; }
     .quick-stat { padding:9px 5px; }
     .chart-wrap { height:175px; }
   }
-
 </style>
 </head>
 <body>
 
-<!-- THÔNG BÁO TỰ ĐỘNG CẬP NHẬT KHI CÓ BẢN MỚI TRÊN GITHUB -->
-<!-- THANH THÔNG BÁO TIẾN TRÌNH CẬP NHẬT -->
-<!-- THANH THÔNG BÁO TIẾN TRÌNH CẬP NHẬT -->
-<div class="update-bar-toast" id="updateNotificationBar" style="flex-direction: column; gap: 8px;">
+<!-- KHUNG THÔNG BÁO CẬP NHẬT -->
+<div class="update-bar-toast" id="updateNotificationBar">
   <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-    <span id="updateToastTitle">🚀 Đã có phiên bản mới!</span>
+    <span id="updateToastTitle">🚀 Đã có phiên bản mới cập nhật!</span>
     <button type="button" class="btn" id="updateActionBtn" style="background:#fff; color:#0ea5e9; padding:4px 8px; font-size:11px; font-weight:700;" onclick="startAppUpdate()">Cập nhật ngay</button>
   </div>
-  <div id="updateProgressWrap" style="display:none; width: 100%; height: 5px; background: rgba(255,255,255,0.3); border-radius: 4px; overflow: hidden;">
+  <div id="updateProgressWrap" style="display:none; width: 100%; height: 5px; background: rgba(255,255,255,0.3); border-radius: 4px; overflow: hidden; margin-top: 6px;">
     <div id="updateProgressBar" style="width: 0%; height: 100%; background: #fff; transition: width 0.3s ease;"></div>
   </div>
 </div>
 
 <header class="top-nav">
   <div class="nav-title">
-    <span>📦Rider Performance Report</span>
+    <span>📦 SPX Chi Linh 2</span>
   </div>
   <div class="header-actions">
     <button class="btn" id="themeToggleBtn" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
@@ -781,7 +772,7 @@
       <main class="app-container">
         <section class="card">
           <div class="overview-hero-card">
-            <!-- BOX THỨ HẠNG & PHỤ CẤP KHOẢNG CÁCH -->
+            <!-- BOX THỨ HẠNG & PHỤ CẤP -->
             <div class="hero-rank-select-box">
               <div class="hero-rank-row">
                 <label for="riderRankSelect">🎖️ Thứ hạng của bạn:</label>
@@ -796,12 +787,12 @@
               </div>
 
               <div class="hero-rank-row" style="border-top:1px dashed var(--glass-border-subtle); padding-top:6px; flex-wrap: nowrap; gap: 6px;">
-  <label for="distanceAllowanceInput" style="font-size: 11px; flex: 1; min-width: 0; white-space: normal;">📍 Phụ cấp khoảng cách:</label>
-  <div style="display:flex; align-items:center; gap:3px; flex-shrink: 0;">
-    <input type="number" id="distanceAllowanceInput" class="input-control" style="width:90px; padding:4px 6px; font-size:12px; font-weight:700; text-align:right;" value="1000000" oninput="onDistanceAllowanceChange(this.value)">
-    <span style="font-size:10px; font-weight:700; color:var(--text-muted);">VNĐ</span>
-  </div>
-</div>
+                <label for="distanceAllowanceInput" style="font-size:11px; flex:1; min-width:0; white-space:normal;">📍 Phụ cấp khoảng cách:</label>
+                <div style="display:flex; align-items:center; gap:3px; flex-shrink: 0;">
+                  <input type="number" id="distanceAllowanceInput" class="input-control" style="width:95px; padding:4px 6px; font-size:12px; font-weight:700; text-align:right;" value="1000000" oninput="onDistanceAllowanceChange(this.value)">
+                  <span style="font-size:10px; font-weight:700; color:var(--text-muted);">VNĐ</span>
+                </div>
+              </div>
             </div>
 
             <!-- BẢNG CHI TIẾT CỘNG ĐIỂM -->
@@ -844,13 +835,12 @@
             </div>
           </div>
 
-
           <!-- HÔM NAY / THÁNG NÀY -->
           <section class="card quick-period-card">
             <div class="card-head" style="margin-bottom:8px;">
               <div>
                 <h2>📊 Sản Lượng</h2>
-                <p id="periodTitle">Hôm nay · 11/09/2026</p>
+                <p id="periodTitle">Hôm nay</p>
               </div>
               <span id="periodTotalOrders" style="font-size:11px;font-weight:800;color:var(--spx-orange);">0 đơn</span>
             </div>
@@ -1120,7 +1110,6 @@
       <button class="modal-close-btn" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
-      <!-- QUÉT ẢNH NỘI BỘ SIÊU TỐC KHÔNG DÙNG AI -->
       <div style="margin-bottom: 12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
         <input type="file" id="localOcrInput" accept="image/*" multiple style="display:none" onchange="processLocalImageScan(this)">
         <button type="button" class="btn btn-primary" onclick="document.getElementById('localOcrInput').click()">
@@ -1138,11 +1127,9 @@
         <input type="date" id="inputDate" class="input-control">
       </div>
       
-      <!-- HÀNG 1: ĐƠN GIAO -->
+      <!-- ĐƠN GIAO -->
       <div class="modal-section-card card-del">
-        <div class="modal-section-title">
-          <span>🚚 HÀNG 1: SẢN LƯỢNG ĐƠN GIAO</span>
-        </div>
+        <div class="modal-section-title"><span>🚚 HÀNG 1: SẢN LƯỢNG ĐƠN GIAO</span></div>
         <div class="weights-horizontal-grid">
           <div class="weight-input-item"><label>>0 - 2 kg</label><input type="number" inputmode="numeric" id="del_inp_0_2" class="input-control" value="0" min="0"></div>
           <div class="weight-input-item"><label>>2 - 4 kg</label><input type="number" inputmode="numeric" id="del_inp_2_4" class="input-control" value="0" min="0"></div>
@@ -1155,11 +1142,9 @@
         </div>
       </div>
 
-      <!-- HÀNG 2: ĐƠN LẤY -->
+      <!-- ĐƠN LẤY -->
       <div class="modal-section-card card-pick">
-        <div class="modal-section-title">
-          <span>📥 HÀNG 2: SẢN LƯỢNG ĐƠN LẤY</span>
-        </div>
+        <div class="modal-section-title"><span>📥 HÀNG 2: SẢN LƯỢNG ĐƠN LẤY</span></div>
         <div class="weights-horizontal-grid">
           <div class="weight-input-item"><label>>0 - 2 kg</label><input type="number" inputmode="numeric" id="pick_inp_0_2" class="input-control" value="0" min="0"></div>
           <div class="weight-input-item"><label>>2 - 4 kg</label><input type="number" inputmode="numeric" id="pick_inp_2_4" class="input-control" value="0" min="0"></div>
@@ -1172,11 +1157,9 @@
         </div>
       </div>
 
-      <!-- HÀNG 3: ĐƠN HOÀN -->
+      <!-- ĐƠN HOÀN -->
       <div class="modal-section-card card-ret">
-        <div class="modal-section-title">
-          <span>📦 HÀNG 3: SẢN LƯỢNG ĐƠN HOÀN</span>
-        </div>
+        <div class="modal-section-title"><span>📦 HÀNG 3: SẢN LƯỢNG ĐƠN HOÀN</span></div>
         <div class="weights-horizontal-grid">
           <div class="weight-input-item"><label>>0 - 2 kg</label><input type="number" inputmode="numeric" id="ret_inp_0_2" class="input-control" value="0" min="0"></div>
           <div class="weight-input-item"><label>>2 - 4 kg</label><input type="number" inputmode="numeric" id="ret_inp_2_4" class="input-control" value="0" min="0"></div>
@@ -1197,47 +1180,40 @@
 </div>
 
 <script>
-// TỰ ĐỘNG KIỂM TRA PHIÊN BẢN MỚI TỪ GITHUB
-// TỰ ĐỘNG PHÁT HIỆN SỬA ĐỔI FILE INDEX.HTML VÀ HIỂN THỊ CẬP NHẬT
-// KIỂM TRA BẢN MỚI QUA HEADER ETAG / LAST-MODIFIED CỦA GITHUB PAGES
-  // ĐỊNH DANH BẢN BUILD (Mỗi lần sửa file đẩy lên GitHub thì đổi số này, ví dụ thêm phút/giây)
-const APP_BUILD_ID = "20260911_1800";
-// KIỂM TRA PHIÊN BẢN MỚI
+/* =========================================================
+   CƠ CHẾ CẬP NHẬT TỰ ĐỘNG KHÔNG LỖI CACHE
+========================================================= */
+const CURRENT_BUILD = document.querySelector('meta[name="app-build-ver"]')?.content || "1.0.0";
+
+// Tự động kiểm tra bản cập nhật
 async function checkIndexFileChanges() {
   try {
-    // Lưu phiên bản hiện tại đang mở vào máy
-    const currentInstalled = localStorage.getItem('spx_installed_build_id');
-    if (!currentInstalled) {
-      localStorage.setItem('spx_installed_build_id', APP_BUILD_ID);
+    const savedBuild = localStorage.getItem('spx_saved_build');
+    if (!savedBuild) {
+      localStorage.setItem('spx_saved_build', CURRENT_BUILD);
     }
 
-    // Tải ngầm file index từ server để kiểm tra xem trên GitHub có bản mới hơn không
     const res = await fetch(`index.html?t=${Date.now()}`, {
       cache: 'no-store',
       headers: { 'Cache-Control': 'no-cache' }
     });
-
     if (!res.ok) return;
 
-    const text = await res.text();
-    // Dùng regex quét đúng chuỗi APP_BUILD_ID trên file ở server
-    const match = text.match(/const\s+APP_BUILD_ID\s*=\s*["']([^"']+)["']/);
-    
+    const html = await res.text();
+    const match = html.match(/meta\s+name=["']app-build-ver["']\s+content=["']([^"']+)["']/i);
     if (match && match[1]) {
-      const serverBuildId = match[1];
-      // Chỉ khi ID trên server KHÁC với ID của file hiện tại đang chạy thì mới báo cập nhật
-      if (serverBuildId !== APP_BUILD_ID) {
-        window.pendingBuildId = serverBuildId;
+      const remoteBuild = match[1];
+      if (remoteBuild !== CURRENT_BUILD) {
+        window.pendingRemoteBuild = remoteBuild;
         const bar = document.getElementById('updateNotificationBar');
-        if (bar) bar.style.display = 'flex';
+        if (bar) bar.style.display = 'block';
       }
     }
-  } catch (err) {
-    console.warn("Bỏ qua kiểm tra update:", err);
+  } catch (e) {
+    console.warn("Không kiểm tra được update:", e);
   }
 }
 
-// HÀM CHẠY TIẾN TRÌNH CẬP NHẬT
 async function startAppUpdate() {
   const barWrap = document.getElementById('updateProgressWrap');
   const bar = document.getElementById('updateProgressBar');
@@ -1247,77 +1223,44 @@ async function startAppUpdate() {
 
   if (btn) btn.style.display = 'none';
   if (barWrap) barWrap.style.display = 'block';
-  if (title) title.innerText = '⏳ Đang tải bản cập nhật mới...';
-  if (bar) bar.style.width = '35%';
+  if (title) title.innerText = '⏳ Đang tải bản mới...';
+  if (bar) bar.style.width = '40%';
 
   try {
-    const timestamp = Date.now();
-
-    // Tải nạp bản mới
-    await fetch(`index.html?v=${timestamp}`, {
-      cache: 'reload',
-      headers: { 'Cache-Control': 'no-cache' }
-    });
-
-    if (bar) bar.style.width = '75%';
-
-    // Cập nhật ngay ID mới vào bộ nhớ trước khi load lại để không bao giờ bị hỏi lại
-    if (window.pendingBuildId) {
-      localStorage.setItem('spx_installed_build_id', window.pendingBuildId);
+    const ts = Date.now();
+    await fetch(`index.html?ts=${ts}`, { cache: 'reload' });
+    
+    if (bar) bar.style.width = '80%';
+    if (window.pendingRemoteBuild) {
+      localStorage.setItem('spx_saved_build', window.pendingRemoteBuild);
     }
 
     if (bar) bar.style.width = '100%';
-    if (title) title.innerText = '✅ Cập nhật hoàn tất! Đang mở...';
+    if (title) title.innerText = '✅ Cập nhật thành công!';
     if (toast) toast.style.background = '#10b981';
 
-    // Chuyển hướng kèm timestamp để xóa hoàn toàn cache trình duyệt
     setTimeout(() => {
-      const baseUrl = window.location.href.split('?')[0];
-      window.location.replace(baseUrl + '?v=' + timestamp);
-    }, 700);
-
+      const cleanUrl = window.location.origin + window.location.pathname;
+      window.location.replace(cleanUrl + '?v=' + ts);
+    }, 600);
   } catch (err) {
-    console.error('Cập nhật lỗi:', err);
-    if (toast) toast.style.background = '#e11d48';
-    if (title) title.innerText = '❌ Lỗi tải bản mới. Thử lại sau!';
-    
+    console.error(err);
+    if (toast) toast.style.background = '#ef4444';
+    if (title) title.innerText = '❌ Lỗi mạng, thử lại!';
     setTimeout(() => {
       if (barWrap) barWrap.style.display = 'none';
-      if (bar) { bar.style.width = '0%'; bar.style.background = '#fff'; }
       if (toast) toast.style.background = '#0ea5e9';
       if (title) title.innerText = '🚀 Đã có phiên bản mới!';
-      if (btn) {
-        btn.style.display = 'inline-block';
-        btn.innerText = 'Thử lại';
-      }
+      if (btn) btn.style.display = 'inline-block';
     }, 2500);
   }
 }
 
-// Chạy kiểm tra độc lập
-setTimeout(checkIndexFileChanges, 1500);
+setTimeout(checkIndexFileChanges, 2000);
 
-// Chạy kiểm tra
-checkIndexFileChanges();
-setInterval(checkIndexFileChanges, 30000);
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') checkIndexFileChanges();
-});
-
-
-
-
-
-
-
-// Tự động kiểm tra định kỳ mỗi 30 giây hoặc khi người dùng quay lại app từ ứng dụng khác
-setInterval(checkIndexFileChanges, 30000);
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') checkIndexFileChanges();
-});
-
-checkForAppUpdates();
-
+/* =========================================================
+   THEME SETUP
+========================================================= */
 function initTheme() {
   const savedTheme = localStorage.getItem('spx_theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
@@ -1335,6 +1278,7 @@ function toggleTheme() {
 function updateThemeBtnUI(theme) {
   const icon = document.getElementById('themeIcon');
   const text = document.getElementById('themeText');
+  if (!icon || !text) return;
   if (theme === 'dark') {
     icon.innerText = '☀️';
     text.innerText = 'Sáng';
@@ -1346,7 +1290,9 @@ function updateThemeBtnUI(theme) {
 
 initTheme();
 
-// 1. DỮ LIỆU BẢNG 5: ĐƠN GIAO (94 MỐC - VNĐ)
+/* =========================================================
+   DỮ LIỆU ĐIỂM
+========================================================= */
 const TABLE_5_DATA = [
   { min: 1, max: 15, range: "1 - 15", pts: [25000, 60000, 60000, 60000, 70000, 90000, 110000, 120000] },
   { min: 15, max: 30, range: "15 - 30", pts: [50000, 110000, 120000, 120000, 150000, 180000, 220000, 240000] },
@@ -1444,7 +1390,6 @@ const TABLE_5_DATA = [
   { min: 12000, max: Infinity, range: "≥ 12,000", pts: [30300000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000] }
 ];
 
-// 2. DỮ LIỆU BẢNG 4: ĐƠN LẤY (46 MỐC - VNĐ)
 const TABLE_4_DATA = [
   { min: 1, max: 15, range: "1 - 15", pts: [15000, 30000, 30000, 40000, 40000, 50000, 70000, 80000] },
   { min: 15, max: 30, range: "15 - 30", pts: [25000, 60000, 60000, 60000, 70000, 90000, 110000, 120000] },
@@ -1494,7 +1439,6 @@ const TABLE_4_DATA = [
   { min: 75400, max: Infinity, range: "≥ 75,400", pts: [33500000, 60300000, 70350000, 73700000, 93800000, 100000000, 100000000, 100000000] }
 ];
 
-// 3. DỮ LIỆU BẢNG 6: ĐƠN HOÀN (46 MỐC - VNĐ)
 const TABLE_6_DATA = [
   { min: 1, max: 15, range: "1 - 15", pts: [15000, 30000, 30000, 40000, 40000, 50000, 70000, 70000] },
   { min: 15, max: 30, range: "15 - 30", pts: [25000, 60000, 60000, 60000, 70000, 90000, 110000, 120000] },
@@ -1552,7 +1496,6 @@ let appData = JSON.parse(localStorage.getItem('spx_dual_records')) || {
   pickup: [],
   return: []
 };
-
 if (!appData.return) appData.return = [];
 
 let userRank = localStorage.getItem('spx_user_rank') || 'none';
@@ -1569,28 +1512,26 @@ function formatPts(n) {
 
 function getTodayIso() {
   const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function formatDateDisplay(isoDate) {
   if (!isoDate) return '';
   const parts = isoDate.split('-');
-  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  return isoDate;
+  return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : isoDate;
 }
 
 function switchMainTab(tabId, el) {
   currentActiveTab = tabId;
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-  el.classList.add('active');
+  if (el) el.classList.add('active');
 
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById(`tab-${tabId}`).classList.add('active');
+  const panel = document.getElementById(`tab-${tabId}`);
+  if (panel) panel.classList.add('active');
 
   if (tabId === 'history') renderHistory();
+  if (tabId === 'overview') drawSevenDayChart();
 }
 
 function setOverviewFilter(filter, el) {
@@ -1656,11 +1597,10 @@ function onDistanceAllowanceChange(val) {
 
 function calculateWorkAndDistance(daysInMonth) {
   const stdWorkingDays = Math.max(1, daysInMonth - 4);
-  const dailyBaseSalary = 5310000 / stdWorkingDays; //
-  const dailyDistanceFee = monthlyDistanceAllowance / stdWorkingDays; //
+  const dailyBaseSalary = 5310000 / stdWorkingDays;
+  const dailyDistanceFee = monthlyDistanceAllowance / stdWorkingDays;
 
   const dailyOrdersMap = {};
-
   const now = new Date();
   const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-`;
 
@@ -1670,41 +1610,32 @@ function calculateWorkAndDistance(daysInMonth) {
       if (!String(d).startsWith(monthPrefix)) return;
       if (!dailyOrdersMap[d]) dailyOrdersMap[d] = 0;
       let count = 0;
-      WEIGHT_KEYS.forEach(k => {
-        count += parseInt(r.weights[k], 10) || 0;
-      });
+      WEIGHT_KEYS.forEach(k => { count += parseInt(r.weights[k], 10) || 0; });
       dailyOrdersMap[d] += count * factor;
     });
   };
 
-  addOrdersToDate(appData.delivery, 1.0);     // 1 đơn giao = 1 quy đổi
-  addOrdersToDate(appData.return, 1.0);       // 1 đơn hoàn = 1 quy đổi
-  addOrdersToDate(appData.pickup, 1.0 / 6.0); // 6 đơn lấy = 1 quy đổi
+  addOrdersToDate(appData.delivery, 1.0);
+  addOrdersToDate(appData.return, 1.0);
+  addOrdersToDate(appData.pickup, 1.0 / 6.0);
 
   let fullWorkDays = 0;
   let halfWorkDays = 0;
 
   Object.keys(dailyOrdersMap).forEach(d => {
     const pts = dailyOrdersMap[d];
-    if (pts >= 60) {
-      fullWorkDays += 1;
-    } else if (pts >= 30) {
-      halfWorkDays += 1;
-    }
+    if (pts >= 60) fullWorkDays += 1;
+    else if (pts >= 30) halfWorkDays += 1;
   });
 
   const totalEffectiveWorkDays = fullWorkDays + (halfWorkDays * 0.5);
-  const totalBaseSalary = totalEffectiveWorkDays * dailyBaseSalary;
-  const totalDistance = totalEffectiveWorkDays * dailyDistanceFee;
-
   return {
     fullWorkDays,
     halfWorkDays,
     totalEffectiveWorkDays,
-    totalCombined: totalBaseSalary + totalDistance
+    totalCombined: (totalEffectiveWorkDays * dailyBaseSalary) + (totalEffectiveWorkDays * dailyDistanceFee)
   };
 }
-
 
 function setPeriodView(view, el) {
   currentPeriodView = view;
@@ -1715,18 +1646,6 @@ function setPeriodView(view, el) {
 
 function getRecordOrderCount(record) {
   return WEIGHT_KEYS.reduce((sum, k) => sum + (parseInt(record.weights[k], 10) || 0), 0);
-}
-
-function getRecordPoints(record, tableData) {
-  const total = getRecordOrderCount(record);
-  if (!total) return 0;
-  let pts = 0;
-  WEIGHT_KEYS.forEach((k, idx) => {
-    const count = parseInt(record.weights[k], 10) || 0;
-    if (count <= 0) return;
-    pts += lookupTier(count, idx, tableData).matched.pt;
-  });
-  return pts;
 }
 
 function getDateRecords(type, isoDate) {
@@ -1795,6 +1714,7 @@ function updateWorkdayCard(workStats, daysInMonth) {
   document.getElementById('workdayProgress').style.width = `${progress}%`;
   document.getElementById('workdayFull').innerText = workStats.fullWorkDays;
   document.getElementById('workdayHalf').innerText = workStats.halfWorkDays;
+
   const activeDates = new Set();
   const now = new Date();
   const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-`;
@@ -1822,8 +1742,8 @@ function drawSevenDayChart() {
   if (!canvas || !wrap) return;
   const rect = wrap.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
-  const w = Math.max(280, rect.width);
-  const h = Math.max(150, rect.height);
+  const w = Math.max(280, rect.width || 320);
+  const h = Math.max(150, rect.height || 180);
   canvas.width = Math.round(w * dpr);
   canvas.height = Math.round(h * dpr);
   canvas.style.width = `${w}px`;
@@ -1849,42 +1769,30 @@ function drawSevenDayChart() {
   ctx.font = '10px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim();
+  ctx.fillStyle = '#94a3b8';
   for (let g=0; g<=4; g++) {
     const val = Math.round(maxVal * g / 4);
     const yy = y(val);
     ctx.beginPath(); ctx.moveTo(pad.left,yy); ctx.lineTo(w-pad.right,yy);
-    ctx.strokeStyle = 'rgba(148,163,184,.22)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.strokeStyle = 'rgba(148,163,184,.2)'; ctx.lineWidth = 1; ctx.stroke();
     ctx.fillText(val.toLocaleString('vi-VN'), pad.left-5, yy);
   }
 
-  const drawLine = (values, colorVar, fallbackColor) => {
+  const drawLine = (values, color) => {
     ctx.beginPath();
-    values.forEach((v, i) => (i ? ctx.lineTo(x(i), y(v)) : ctx.moveTo(x(i), y(v))));
-    
-    // Lấy màu từ CSS hoặc fallback an toàn
-    let strokeCol = getComputedStyle(document.documentElement).getPropertyValue(colorVar).trim();
-    if (!strokeCol) strokeCol = fallbackColor;
-    
-    ctx.strokeStyle = strokeCol;
-    ctx.lineWidth = 2.5;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.stroke();
-    
-    values.forEach((v, i) => {
-      ctx.beginPath();
-      ctx.arc(x(i), y(v), 3, 0, Math.PI * 2);
-      ctx.fillStyle = strokeCol;
-      ctx.fill();
+    values.forEach((v,i) => i ? ctx.lineTo(x(i),y(v)) : ctx.moveTo(x(i),y(v)));
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5; ctx.lineJoin='round'; ctx.lineCap='round'; ctx.stroke();
+    values.forEach((v,i) => {
+      ctx.beginPath(); ctx.arc(x(i),y(v),3,0,Math.PI*2); ctx.fillStyle=color; ctx.fill();
     });
   };
 
-  drawLine(series.del, '--glass-violet-text', '#7c3aed');
-  drawLine(series.pick, '--glass-sky-text', '#0284c7');
-  drawLine(series.ret, '--glass-amber-text', '#d97706');
+  drawLine(series.del, '#8b5cf6');
+  drawLine(series.pick, '#0ea5e9');
+  drawLine(series.ret, '#f59e0b');
 
-  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim();
+  ctx.fillStyle = '#94a3b8';
   ctx.textAlign='center'; ctx.textBaseline='top';
   dates.forEach((date,i) => {
     const label = date.slice(8,10) + '/' + date.slice(5,7);
@@ -1901,264 +1809,218 @@ function getRecordOrderCountByDate(type, date) {
 }
 
 function updateAllViews() {
-  const rankEl = document.getElementById('riderRankSelect');
-  if (rankEl) rankEl.value = userRank;
+  try {
+    const rankEl = document.getElementById('riderRankSelect');
+    if (rankEl) rankEl.value = userRank;
 
-  const distInp = document.getElementById('distanceAllowanceInput');
-  if (distInp && document.activeElement !== distInp) distInp.value = monthlyDistanceAllowance;
+    const distInp = document.getElementById('distanceAllowanceInput');
+    if (distInp && document.activeElement !== distInp) distInp.value = monthlyDistanceAllowance;
 
-  const delAgg = [0, 0, 0, 0, 0, 0, 0, 0];
-  let delGrandOrders = 0;
-  appData.delivery.forEach(r => {
-    WEIGHT_KEYS.forEach((k, idx) => {
-      const val = parseInt(r.weights[k], 10) || 0;
-      delAgg[idx] += val;
-      delGrandOrders += val;
+    const delAgg = [0, 0, 0, 0, 0, 0, 0, 0];
+    let delGrandOrders = 0;
+    appData.delivery.forEach(r => {
+      WEIGHT_KEYS.forEach((k, idx) => {
+        const val = parseInt(r.weights[k], 10) || 0;
+        delAgg[idx] += val;
+        delGrandOrders += val;
+      });
     });
-  });
 
-  const pickAgg = [0, 0, 0, 0, 0, 0, 0, 0];
-  let pickGrandOrders = 0;
-  appData.pickup.forEach(r => {
-    WEIGHT_KEYS.forEach((k, idx) => {
-      const val = parseInt(r.weights[k], 10) || 0;
-      pickAgg[idx] += val;
-      pickGrandOrders += val;
+    const pickAgg = [0, 0, 0, 0, 0, 0, 0, 0];
+    let pickGrandOrders = 0;
+    appData.pickup.forEach(r => {
+      WEIGHT_KEYS.forEach((k, idx) => {
+        const val = parseInt(r.weights[k], 10) || 0;
+        pickAgg[idx] += val;
+        pickGrandOrders += val;
+      });
     });
-  });
 
-  const retAgg = [0, 0, 0, 0, 0, 0, 0, 0];
-  let retGrandOrders = 0;
-  (appData.return || []).forEach(r => {
-    WEIGHT_KEYS.forEach((k, idx) => {
-      const val = parseInt(r.weights[k], 10) || 0;
-      retAgg[idx] += val;
-      retGrandOrders += val;
+    const retAgg = [0, 0, 0, 0, 0, 0, 0, 0];
+    let retGrandOrders = 0;
+    (appData.return || []).forEach(r => {
+      WEIGHT_KEYS.forEach((k, idx) => {
+        const val = parseInt(r.weights[k], 10) || 0;
+        retAgg[idx] += val;
+        retGrandOrders += val;
+      });
     });
-  });
 
-  let delGrandPoints = 0;
-  let pickGrandPoints = 0;
-  let retGrandPoints = 0;
+    let delGrandPoints = 0;
+    let pickGrandPoints = 0;
+    let retGrandPoints = 0;
 
-  const delTbody = document.getElementById('delTableBody');
-  const delSuggBox = document.getElementById('delMilestoneList');
-  delTbody.innerHTML = '';
-  delSuggBox.innerHTML = '';
+    const delTbody = document.getElementById('delTableBody');
+    const delSuggBox = document.getElementById('delMilestoneList');
+    delTbody.innerHTML = '';
+    delSuggBox.innerHTML = '';
 
-  const pickTbody = document.getElementById('pickTableBody');
-  const pickSuggBox = document.getElementById('pickMilestoneList');
-  pickTbody.innerHTML = '';
-  pickSuggBox.innerHTML = '';
+    const pickTbody = document.getElementById('pickTableBody');
+    const pickSuggBox = document.getElementById('pickMilestoneList');
+    pickTbody.innerHTML = '';
+    pickSuggBox.innerHTML = '';
 
-  const retTbody = document.getElementById('retTableBody');
-  const retSuggBox = document.getElementById('retMilestoneList');
-  retTbody.innerHTML = '';
-  retSuggBox.innerHTML = '';
+    const retTbody = document.getElementById('retTableBody');
+    const retSuggBox = document.getElementById('retMilestoneList');
+    retTbody.innerHTML = '';
+    retSuggBox.innerHTML = '';
 
-  const overviewSuggBox = document.getElementById('overviewMilestoneList');
-  overviewSuggBox.innerHTML = '';
+    const overviewSuggBox = document.getElementById('overviewMilestoneList');
+    overviewSuggBox.innerHTML = '';
 
-  for (let colIdx = 0; colIdx < 8; colIdx++) {
-    const dOrders = delAgg[colIdx];
-    const pOrders = pickAgg[colIdx];
-    const rOrders = retAgg[colIdx];
+    for (let colIdx = 0; colIdx < 8; colIdx++) {
+      const dOrders = delAgg[colIdx];
+      const pOrders = pickAgg[colIdx];
+      const rOrders = retAgg[colIdx];
 
-    const dTier = lookupTier(dOrders, colIdx, TABLE_5_DATA);
-    const pTier = lookupTier(pOrders, colIdx, TABLE_4_DATA);
-    const rTier = lookupTier(rOrders, colIdx, TABLE_6_DATA);
+      const dTier = lookupTier(dOrders, colIdx, TABLE_5_DATA);
+      const pTier = lookupTier(pOrders, colIdx, TABLE_4_DATA);
+      const rTier = lookupTier(rOrders, colIdx, TABLE_6_DATA);
 
-    delGrandPoints += dTier.matched.pt;
-    pickGrandPoints += pTier.matched.pt;
-    retGrandPoints += rTier.matched.pt;
+      delGrandPoints += dTier.matched.pt;
+      pickGrandPoints += pTier.matched.pt;
+      retGrandPoints += rTier.matched.pt;
 
-    // Tab Đơn Giao
-    const dTr = document.createElement('tr');
-    dTr.innerHTML = `
-      <td class="weight-name">${WEIGHT_LABELS[colIdx]}</td>
-      <td class="order-num delivery-num ${dOrders === 0 ? 'zero' : ''}">
-        ${dOrders.toLocaleString('vi-VN')}
-        <div class="bar-container"><div class="bar-fill del" style="width:${dTier.pct}%"></div></div>
-      </td>
-      <td style="color:var(--text-muted); font-size:11px;">${dTier.matched.range}</td>
-      <td class="points-badge ${dOrders === 0 ? 'zero' : ''}">${formatPts(dTier.matched.pt)}</td>
-    `;
-    delTbody.appendChild(dTr);
-
-    if (dOrders > 0 && dTier.next && isFinite(dTier.matched.maxA)) {
-      const need = (dTier.matched.maxA - dOrders) + 1;
-      const diff = dTier.next.pt - dTier.matched.pt;
-      delSuggBox.innerHTML += `
-        <div class="suggestion-item">
-          <div class="sugg-left">
-            <h4>${WEIGHT_LABELS[colIdx]} · ${dOrders.toLocaleString('vi-VN')} đơn (Đang mốc ${dTier.matched.range})</h4>
-            <p>Cần thêm <b>+${need.toLocaleString('vi-VN')}</b> đơn để đạt mốc ${dTier.next.range}</p>
-          </div>
-          <div class="sugg-points">+${formatPts(diff)}</div>
-        </div>
+      // Render Đơn Giao
+      const dTr = document.createElement('tr');
+      dTr.innerHTML = `
+        <td class="weight-name">${WEIGHT_LABELS[colIdx]}</td>
+        <td class="order-num delivery-num ${dOrders === 0 ? 'zero' : ''}">
+          ${dOrders.toLocaleString('vi-VN')}
+          <div class="bar-container"><div class="bar-fill del" style="width:${dTier.pct}%"></div></div>
+        </td>
+        <td style="color:var(--text-muted); font-size:11px;">${dTier.matched.range}</td>
+        <td class="points-badge ${dOrders === 0 ? 'zero' : ''}">${formatPts(dTier.matched.pt)}</td>
       `;
+      delTbody.appendChild(dTr);
+
+      // Render Đơn Lấy
+      const pTr = document.createElement('tr');
+      pTr.innerHTML = `
+        <td class="weight-name">${WEIGHT_LABELS[colIdx]}</td>
+        <td class="order-num pickup-num ${pOrders === 0 ? 'zero' : ''}">
+          ${pOrders.toLocaleString('vi-VN')}
+          <div class="bar-container"><div class="bar-fill pick" style="width:${pTier.pct}%"></div></div>
+        </td>
+        <td style="color:var(--text-muted); font-size:11px;">${pTier.matched.range}</td>
+        <td class="points-badge ${pOrders === 0 ? 'zero' : ''}">${formatPts(pTier.matched.pt)}</td>
+      `;
+      pickTbody.appendChild(pTr);
+
+      // Render Đơn Hoàn
+      const rTr = document.createElement('tr');
+      rTr.innerHTML = `
+        <td class="weight-name">${WEIGHT_LABELS[colIdx]}</td>
+        <td class="order-num return-num ${rOrders === 0 ? 'zero' : ''}">
+          ${rOrders.toLocaleString('vi-VN')}
+          <div class="bar-container"><div class="bar-fill ret" style="width:${rTier.pct}%"></div></div>
+        </td>
+        <td style="color:var(--text-muted); font-size:11px;">${rTier.matched.range}</td>
+        <td class="points-badge ${rOrders === 0 ? 'zero' : ''}">${formatPts(rTier.matched.pt)}</td>
+      `;
+      retTbody.appendChild(rTr);
+
+      // Gợi ý
+      if (dOrders > 0 && dTier.next && isFinite(dTier.matched.maxA)) {
+        overviewSuggBox.innerHTML += `
+          <div class="suggestion-item sugg-del">
+            <div class="sugg-left">
+              <h4><span class="sugg-type-badge sugg-type-del">GIAO</span> ${WEIGHT_LABELS[colIdx]} · ${dOrders.toLocaleString('vi-VN')} đơn</h4>
+              <p>Cần thêm <b>+${((dTier.matched.maxA - dOrders) + 1).toLocaleString('vi-VN')}</b> đơn để chạm mốc ${dTier.next.range}</p>
+            </div>
+            <div class="sugg-points">+${formatPts(dTier.next.pt - dTier.matched.pt)}</div>
+          </div>
+        `;
+      }
+      if (pOrders > 0 && pTier.next && isFinite(pTier.matched.maxA)) {
+        overviewSuggBox.innerHTML += `
+          <div class="suggestion-item sugg-pick">
+            <div class="sugg-left">
+              <h4><span class="sugg-type-badge sugg-type-pick">LẤY</span> ${WEIGHT_LABELS[colIdx]} · ${pOrders.toLocaleString('vi-VN')} đơn</h4>
+              <p>Cần thêm <b>+${((pTier.matched.maxA - pOrders) + 1).toLocaleString('vi-VN')}</b> đơn để chạm mốc ${pTier.next.range}</p>
+            </div>
+            <div class="sugg-points">+${formatPts(pTier.next.pt - pTier.matched.pt)}</div>
+          </div>
+        `;
+      }
+      if (rOrders > 0 && rTier.next && isFinite(rTier.matched.maxA)) {
+        overviewSuggBox.innerHTML += `
+          <div class="suggestion-item sugg-ret">
+            <div class="sugg-left">
+              <h4><span class="sugg-type-badge sugg-type-ret">HOÀN</span> ${WEIGHT_LABELS[colIdx]} · ${rOrders.toLocaleString('vi-VN')} đơn</h4>
+              <p>Cần thêm <b>+${((rTier.matched.maxA - rOrders) + 1).toLocaleString('vi-VN')}</b> đơn để chạm mốc ${rTier.next.range}</p>
+            </div>
+            <div class="sugg-points">+${formatPts(rTier.next.pt - rTier.matched.pt)}</div>
+          </div>
+        `;
+      }
     }
 
-    // Tab Đơn Lấy
-    const pTr = document.createElement('tr');
-    pTr.innerHTML = `
-      <td class="weight-name">${WEIGHT_LABELS[colIdx]}</td>
-      <td class="order-num pickup-num ${pOrders === 0 ? 'zero' : ''}">
-        ${pOrders.toLocaleString('vi-VN')}
-        <div class="bar-container"><div class="bar-fill pick" style="width:${pTier.pct}%"></div></div>
-      </td>
-      <td style="color:var(--text-muted); font-size:11px;">${pTier.matched.range}</td>
-      <td class="points-badge ${pOrders === 0 ? 'zero' : ''}">${formatPts(pTier.matched.pt)}</td>
-    `;
-    pickTbody.appendChild(pTr);
+    const totalProductionPoints = delGrandPoints + pickGrandPoints + retGrandPoints;
+    const overallOrders = delGrandOrders + pickGrandOrders + retGrandOrders;
+    const totalDaysCount = appData.delivery.length + appData.pickup.length + (appData.return || []).length;
 
-    if (pOrders > 0 && pTier.next && isFinite(pTier.matched.maxA)) {
-      const need = (pTier.matched.maxA - pOrders) + 1;
-      const diff = pTier.next.pt - pTier.matched.pt;
-      pickSuggBox.innerHTML += `
-        <div class="suggestion-item">
-          <div class="sugg-left">
-            <h4>${WEIGHT_LABELS[colIdx]} · ${pOrders.toLocaleString('vi-VN')} đơn (Đang mốc ${pTier.matched.range})</h4>
-            <p>Cần thêm <b>+${need.toLocaleString('vi-VN')}</b> đơn để đạt mốc ${pTier.next.range}</p>
-          </div>
-          <div class="sugg-points">+${formatPts(diff)}</div>
-        </div>
-      `;
-    }
+    const now = new Date();
+    const daysInCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const workStats = calculateWorkAndDistance(daysInCurrentMonth);
+    const distanceAndWorkPoints = workStats.totalCombined;
 
-    // Tab Đơn Hoàn
-    const rTr = document.createElement('tr');
-    rTr.innerHTML = `
-      <td class="weight-name">${WEIGHT_LABELS[colIdx]}</td>
-      <td class="order-num return-num ${rOrders === 0 ? 'zero' : ''}">
-        ${rOrders.toLocaleString('vi-VN')}
-        <div class="bar-container"><div class="bar-fill ret" style="width:${rTier.pct}%"></div></div>
-      </td>
-      <td style="color:var(--text-muted); font-size:11px;">${rTier.matched.range}</td>
-      <td class="points-badge ${rOrders === 0 ? 'zero' : ''}">${formatPts(rTier.matched.pt)}</td>
-    `;
-    retTbody.appendChild(rTr);
+    updatePeriodStats();
+    updateWorkdayCard(workStats, daysInCurrentMonth);
+    drawSevenDayChart();
 
-    if (rOrders > 0 && rTier.next && isFinite(rTier.matched.maxA)) {
-      const need = (rTier.matched.maxA - rOrders) + 1;
-      const diff = rTier.next.pt - rTier.matched.pt;
-      retSuggBox.innerHTML += `
-        <div class="suggestion-item">
-          <div class="sugg-left">
-            <h4>${WEIGHT_LABELS[colIdx]} · ${rOrders.toLocaleString('vi-VN')} đơn (Đang mốc ${rTier.matched.range})</h4>
-            <p>Cần thêm <b>+${need.toLocaleString('vi-VN')}</b> đơn để đạt mốc ${rTier.next.range}</p>
-          </div>
-          <div class="sugg-points">+${formatPts(diff)}</div>
-        </div>
-      `;
+    let rankRate = 0;
+    if (userRank === 'dong') rankRate = 0.10;
+    else if (userRank === 'bac') rankRate = 0.15;
+    else if (userRank === 'vang') rankRate = 0.20;
+    else if (userRank === 'bachkim') rankRate = 0.22;
+    else if (userRank === 'kimcuong') rankRate = 0.26;
+
+    const rankBonusPoints = totalProductionPoints * rankRate;
+    const grandTotalPoints = totalProductionPoints + distanceAndWorkPoints + rankBonusPoints;
+
+    document.getElementById('overallProductionPoints').innerText = formatPts(totalProductionPoints);
+    document.getElementById('overallDistanceWorkPoints').innerText = formatPts(distanceAndWorkPoints);
+    document.getElementById('workDaysSummaryDetail').innerText = `(${workStats.fullWorkDays} ngày chuẩn · ${workStats.halfWorkDays} ngày nửa công | ${daysInCurrentMonth - 4} ngày tiêu chuẩn)`;
+    document.getElementById('overallRankBonusPoints').innerText = formatPts(rankBonusPoints);
+    document.getElementById('overallGrandTotalPoints').innerText = formatPts(grandTotalPoints);
+
+    if (overallOrders > 0) {
+      const pDel = Math.round((delGrandOrders / overallOrders) * 100);
+      const pPick = Math.round((pickGrandOrders / overallOrders) * 100);
+      const pRet = 100 - pDel - pPick;
+      document.getElementById('ratioBarDel').style.width = pDel + '%';
+      document.getElementById('ratioBarPick').style.width = pPick + '%';
+      document.getElementById('ratioBarRet').style.width = pRet + '%';
+      document.getElementById('ratioText').innerText = `${pDel}% Giao · ${pPick}% Lấy · ${pRet}% Hoàn`;
+    } else {
+      document.getElementById('ratioBarDel').style.width = '33.3%';
+      document.getElementById('ratioBarPick').style.width = '33.3%';
+      document.getElementById('ratioBarRet').style.width = '33.4%';
+      document.getElementById('ratioText').innerText = '0% Giao · 0% Lấy · 0% Hoàn';
     }
 
-    // Mục tiêu tab Tổng Quan
-    if (dOrders > 0 && dTier.next && isFinite(dTier.matched.maxA)) {
-      overviewSuggBox.innerHTML += `
-        <div class="suggestion-item sugg-del">
-          <div class="sugg-left">
-            <h4><span class="sugg-type-badge sugg-type-del">GIAO</span> ${WEIGHT_LABELS[colIdx]} · ${dOrders.toLocaleString('vi-VN')} đơn (Đang ${dTier.matched.range})</h4>
-            <p>Cần thêm <b>+${((dTier.matched.maxA - dOrders) + 1).toLocaleString('vi-VN')}</b> đơn để chạm mốc ${dTier.next.range}</p>
-          </div>
-          <div class="sugg-points">+${formatPts(dTier.next.pt - dTier.matched.pt)}</div>
-        </div>
-      `;
-    }
-    if (pOrders > 0 && pTier.next && isFinite(pTier.matched.maxA)) {
-      overviewSuggBox.innerHTML += `
-        <div class="suggestion-item sugg-pick">
-          <div class="sugg-left">
-            <h4><span class="sugg-type-badge sugg-type-pick">LẤY</span> ${WEIGHT_LABELS[colIdx]} · ${pOrders.toLocaleString('vi-VN')} đơn (Đang ${pTier.matched.range})</h4>
-            <p>Cần thêm <b>+${((pTier.matched.maxA - pOrders) + 1).toLocaleString('vi-VN')}</b> đơn để chạm mốc ${pTier.next.range}</p>
-          </div>
-          <div class="sugg-points">+${formatPts(pTier.next.pt - pTier.matched.pt)}</div>
-        </div>
-      `;
-    }
-    if (rOrders > 0 && rTier.next && isFinite(rTier.matched.maxA)) {
-      overviewSuggBox.innerHTML += `
-        <div class="suggestion-item sugg-ret">
-          <div class="sugg-left">
-            <h4><span class="sugg-type-badge sugg-type-ret">HOÀN</span> ${WEIGHT_LABELS[colIdx]} · ${rOrders.toLocaleString('vi-VN')} đơn (Đang ${rTier.matched.range})</h4>
-            <p>Cần thêm <b>+${((rTier.matched.maxA - rOrders) + 1).toLocaleString('vi-VN')}</b> đơn để chạm mốc ${rTier.next.range}</p>
-          </div>
-          <div class="sugg-points">+${formatPts(rTier.next.pt - rTier.matched.pt)}</div>
-        </div>
-      `;
-    }
+    document.getElementById('miniDelPoints').innerText = formatPts(delGrandPoints);
+    document.getElementById('miniDelOrders').innerText = `${delGrandOrders.toLocaleString('vi-VN')} đơn`;
+    document.getElementById('miniPickPoints').innerText = formatPts(pickGrandPoints);
+    document.getElementById('miniPickOrders').innerText = `${pickGrandOrders.toLocaleString('vi-VN')} đơn`;
+    document.getElementById('miniRetPoints').innerText = formatPts(retGrandPoints);
+    document.getElementById('miniRetOrders').innerText = `${retGrandOrders.toLocaleString('vi-VN')} đơn`;
+
+    document.getElementById('delTotalPoints').innerText = formatPts(delGrandPoints);
+    document.getElementById('delTotalOrders').innerText = `${delGrandOrders.toLocaleString('vi-VN')} đơn`;
+    document.getElementById('pickTotalPoints').innerText = formatPts(pickGrandPoints);
+    document.getElementById('pickTotalOrders').innerText = `${pickGrandOrders.toLocaleString('vi-VN')} đơn`;
+    document.getElementById('retTotalPoints').innerText = formatPts(retGrandPoints);
+    document.getElementById('retTotalOrders').innerText = `${retGrandOrders.toLocaleString('vi-VN')} đơn`;
+
+    document.getElementById('histCountNote').innerText = `${totalDaysCount} bản ghi trong bộ nhớ máy`;
+
+    renderHistory();
+    localStorage.setItem('spx_dual_records', JSON.stringify(appData));
+  } catch (err) {
+    console.error("Lỗi cập nhật UI:", err);
   }
-
-  const totalProductionPoints = delGrandPoints + pickGrandPoints + retGrandPoints;
-  const overallOrders = delGrandOrders + pickGrandOrders + retGrandOrders;
-  const totalDaysCount = appData.delivery.length + appData.pickup.length + (appData.return || []).length;
-
-  const now = new Date();
-  const daysInCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-
-  const workStats = calculateWorkAndDistance(daysInCurrentMonth);
-  const distanceAndWorkPoints = workStats.totalCombined;
-
-  updatePeriodStats();
-  updateWorkdayCard(workStats, daysInCurrentMonth);
-  drawSevenDayChart();
-
-  let rankRate = 0;
-  if (userRank === 'dong') rankRate = 0.10;
-  else if (userRank === 'bac') rankRate = 0.15;
-  else if (userRank === 'vang') rankRate = 0.20;
-  else if (userRank === 'bachkim') rankRate = 0.22;
-  else if (userRank === 'kimcuong') rankRate = 0.26;
-
-  const rankBonusPoints = totalProductionPoints * rankRate;
-  const grandTotalPoints = totalProductionPoints + distanceAndWorkPoints + rankBonusPoints;
-
-  document.getElementById('overallProductionPoints').innerText = formatPts(totalProductionPoints);
-  document.getElementById('overallDistanceWorkPoints').innerText = formatPts(distanceAndWorkPoints);
-  document.getElementById('workDaysSummaryDetail').innerText = `(${workStats.fullWorkDays} ngày công chuẩn · ${workStats.halfWorkDays} ngày nửa công | ${daysInCurrentMonth - 4} ngày tiêu chuẩn)`;
-  document.getElementById('overallRankBonusPoints').innerText = formatPts(rankBonusPoints);
-  document.getElementById('overallGrandTotalPoints').innerText = formatPts(grandTotalPoints);
-
-  if (overallOrders > 0) {
-    const pDel = Math.round((delGrandOrders / overallOrders) * 100);
-    const pPick = Math.round((pickGrandOrders / overallOrders) * 100);
-    const pRet = 100 - pDel - pPick;
-    document.getElementById('ratioBarDel').style.width = pDel + '%';
-    document.getElementById('ratioBarPick').style.width = pPick + '%';
-    document.getElementById('ratioBarRet').style.width = pRet + '%';
-    document.getElementById('ratioText').innerText = `${pDel}% Giao · ${pPick}% Lấy · ${pRet}% Hoàn`;
-  } else {
-    document.getElementById('ratioBarDel').style.width = '33.3%';
-    document.getElementById('ratioBarPick').style.width = '33.3%';
-    document.getElementById('ratioBarRet').style.width = '33.4%';
-    document.getElementById('ratioText').innerText = '0% Giao · 0% Lấy · 0% Hoàn';
-  }
-
-  document.getElementById('miniDelPoints').innerText = formatPts(delGrandPoints);
-  document.getElementById('miniDelOrders').innerText = `${delGrandOrders.toLocaleString('vi-VN')} đơn`;
-
-  document.getElementById('miniPickPoints').innerText = formatPts(pickGrandPoints);
-  document.getElementById('miniPickOrders').innerText = `${pickGrandOrders.toLocaleString('vi-VN')} đơn`;
-
-  document.getElementById('miniRetPoints').innerText = formatPts(retGrandPoints);
-  document.getElementById('miniRetOrders').innerText = `${retGrandOrders.toLocaleString('vi-VN')} đơn`;
-
-  document.getElementById('delTotalPoints').innerText = formatPts(delGrandPoints);
-  document.getElementById('delTotalOrders').innerText = `${delGrandOrders.toLocaleString('vi-VN')} đơn`;
-  document.getElementById('delSummarySub').innerText = appData.delivery.length > 0 ? `` : '';
-
-  document.getElementById('pickTotalPoints').innerText = formatPts(pickGrandPoints);
-  document.getElementById('pickTotalOrders').innerText = `${pickGrandOrders.toLocaleString('vi-VN')} đơn`;
-  document.getElementById('pickSummarySub').innerText = appData.pickup.length > 0 ? `` : '';
-
-  document.getElementById('retTotalPoints').innerText = formatPts(retGrandPoints);
-  document.getElementById('retTotalOrders').innerText = `${retGrandOrders.toLocaleString('vi-VN')} đơn`;
-  document.getElementById('retSummarySub').innerText = (appData.return || []).length > 0 ? `` : '';
-
-  document.getElementById('histCountNote').innerText = `${totalDaysCount} bản ghi trong bộ nhớ máy`;
-
-  renderHistory();
-  localStorage.setItem('spx_dual_records', JSON.stringify(appData));
 }
 
 function setHistFilter(filterType, btn) {
@@ -2170,6 +2032,7 @@ function setHistFilter(filterType, btn) {
 
 function renderHistory() {
   const container = document.getElementById('historyEntries');
+  if (!container) return;
   container.innerHTML = '';
 
   let list = [];
@@ -2235,8 +2098,55 @@ function openAddModal() {
 function closeModal() {
   document.getElementById('entryModal').classList.remove('active');
 }
+
+function saveRecord() {
+  let date = document.getElementById('inputDate').value;
+  if (!date) date = getTodayIso();
+
+  const parseWeights = (prefix) => ({
+    w0_2: parseInt(document.getElementById(`${prefix}_0_2`).value, 10) || 0,
+    w2_4: parseInt(document.getElementById(`${prefix}_2_4`).value, 10) || 0,
+    w4_6: parseInt(document.getElementById(`${prefix}_4_6`).value, 10) || 0,
+    w6_8: parseInt(document.getElementById(`${prefix}_6_8`).value, 10) || 0,
+    w8_10: parseInt(document.getElementById(`${prefix}_8_10`).value, 10) || 0,
+    w10_12: parseInt(document.getElementById(`${prefix}_10_12`).value, 10) || 0,
+    w12_15: parseInt(document.getElementById(`${prefix}_12_15`).value, 10) || 0,
+    wover_15: parseInt(document.getElementById(`${prefix}_over_15`).value, 10) || 0
+  });
+
+  const delWeights = parseWeights('del_inp');
+  const pickWeights = parseWeights('pick_inp');
+  const retWeights = parseWeights('ret_inp');
+
+  const delTotal = Object.values(delWeights).reduce((a, b) => a + b, 0);
+  const pickTotal = Object.values(pickWeights).reduce((a, b) => a + b, 0);
+  const retTotal = Object.values(retWeights).reduce((a, b) => a + b, 0);
+
+  const now = Date.now();
+  if (delTotal > 0) appData.delivery.unshift({ id: now, date, weights: delWeights });
+  if (pickTotal > 0) appData.pickup.unshift({ id: now + 1, date, weights: pickWeights });
+  if (retTotal > 0) appData.return.unshift({ id: now + 2, date, weights: retWeights });
+
+  closeModal();
+  updateAllViews();
+}
+
+function deleteRecord(type, id) {
+  if (confirm("Bạn muốn xóa bản ghi ngày này?")) {
+    appData[type] = appData[type].filter(item => item.id !== id);
+    updateAllViews();
+  }
+}
+
+function clearAllHistory() {
+  if (confirm("Bạn chắc chắn muốn xóa toàn bộ lịch sử?")) {
+    appData = { delivery: [], pickup: [], return: [] };
+    updateAllViews();
+  }
+}
+
 /* =========================================================
-   BỘ XỬ LÝ QUÉT ẢNH NỘI BỘ (PHÂN TÍCH THEO DÒNG & TOẠ ĐỘ)
+   OCR OFFLINE TESSERACT
 ========================================================= */
 function loadImageFromFile(file) {
   return new Promise((resolve, reject) => {
@@ -2252,29 +2162,18 @@ function loadImageFromFile(file) {
   });
 }
 
-/* =========================================================
-   OCR OFFLINE - MULTI PASS
-   Không phá ảnh gốc. Tạo nhiều bản OCR từ cùng một ảnh rồi
-   đối chiếu kết quả thay vì tin một lần nhận dạng duy nhất.
-========================================================= */
 function preprocessImage(file) {
   return loadImageFromFile(file).then(img => {
-    // Không ép ảnh xuống 1600px nữa. OCR số nhỏ rất dễ mất nét.
-    // Chỉ giới hạn ảnh cực lớn để tránh ngốn RAM trên điện thoại.
     const maxDim = 3200;
     let scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-    // Nếu ảnh nhỏ, phóng 1.5x để số trong bảng có thêm pixel.
     if (Math.max(img.width, img.height) < 1800) scale = Math.min(1.5, maxDim / Math.max(img.width, img.height));
 
     const w = Math.max(1, Math.round(img.width * scale));
     const h = Math.max(1, Math.round(img.height * scale));
 
     const source = document.createElement('canvas');
-    source.width = w;
-    source.height = h;
+    source.width = w; source.height = h;
     const sctx = source.getContext('2d', { willReadFrequently: true });
-    sctx.imageSmoothingEnabled = true;
-    sctx.imageSmoothingQuality = 'high';
     sctx.drawImage(img, 0, 0, w, h);
 
     const original = document.createElement('canvas');
@@ -2286,81 +2185,28 @@ function preprocessImage(file) {
     const gctx = gray.getContext('2d', { willReadFrequently: true });
     gctx.drawImage(source, 0, 0);
     const data = gctx.getImageData(0, 0, w, h);
-    const d = data.data;
-    for (let i = 0; i < d.length; i += 4) {
-      // Giữ grayscale mềm, KHÔNG threshold ngay.
-      const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-      d[i] = d[i + 1] = d[i + 2] = lum;
+    for (let i = 0; i < data.data.length; i += 4) {
+      const lum = 0.299 * data.data[i] + 0.587 * data.data[i + 1] + 0.114 * data.data[i + 2];
+      data.data[i] = data.data[i + 1] = data.data[i + 2] = lum;
     }
     gctx.putImageData(data, 0, 0);
 
-    // Bản tương phản: chữ đen rõ nhưng vẫn giữ nét mảnh.
-    const contrast = document.createElement('canvas');
-    contrast.width = w; contrast.height = h;
-    const cctx = contrast.getContext('2d', { willReadFrequently: true });
-    cctx.drawImage(gray, 0, 0);
-    const cd = cctx.getImageData(0, 0, w, h);
-    const k = 1.45;
-    for (let i = 0; i < cd.data.length; i += 4) {
-      let v = ((cd.data[i] - 128) * k) + 128;
-      v = Math.max(0, Math.min(255, v));
-      cd.data[i] = cd.data[i + 1] = cd.data[i + 2] = v;
-    }
-    cctx.putImageData(cd, 0, 0);
-
-    // Bản threshold nhẹ dùng cho chữ/số bị nền màu làm nhiễu.
-    const binary = document.createElement('canvas');
-    binary.width = w; binary.height = h;
-    const bctx = binary.getContext('2d', { willReadFrequently: true });
-    bctx.drawImage(gray, 0, 0);
-    const bd = bctx.getImageData(0, 0, w, h);
-    for (let i = 0; i < bd.data.length; i += 4) {
-      const v = bd.data[i] < 190 ? 0 : 255;
-      bd.data[i] = bd.data[i + 1] = bd.data[i + 2] = v;
-    }
-    bctx.putImageData(bd, 0, 0);
-
-    return { original, gray, contrast, binary, width: w, height: h };
+    return { original, gray, width: w, height: h };
   });
 }
 
 function normalizeOcrText(text) {
-  return (text || '')
-    .toLowerCase()
-    .replace(/[|]/g, '1')
-    .replace(/[“”]/g, '"')
-    .replace(/[–—−]/g, '-')
-    .replace(/,/g, '.')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-/*
- * SPX OCR: KHÔNG đoán theo từng đầu mút của dải cân.
- * Ví dụ dòng "0.000 - 2.001" trước đây đồng thời bị coi là
- * dải 0-2, 2-4, 4-6... vì parser chỉ tìm thấy "2.001".
- * Nay phải khớp NGUYÊN CẶP dải cân.
- */
-function normalizeWeightNumber(v) {
-  let s = String(v || '').trim().replace(/,/g, '.');
-  s = s.replace(/[^0-9.]/g, '');
-  return s;
+  return (text || '').toLowerCase().replace(/[|]/g, '1').replace(/[–—−]/g, '-').replace(/,/g, '.').replace(/\s+/g, ' ').trim();
 }
 
 function extractWeightRange(text) {
-  const t = normalizeOcrText(text)
-    .replace(/[oó]/g, '0')
-    .replace(/[lI|]/g, '1');
-
-  // Chuẩn hoá các lỗi OCR thường gặp trong số thập phân.
+  const t = normalizeOcrText(text).replace(/[oó]/g, '0').replace(/[lI|]/g, '1');
   const m = t.match(/(\d{1,2})\s*[.]?\s*(\d{3})\s*-\s*(\d{1,2})\s*[.]?\s*(\d{3})/);
   if (!m) return null;
-
   const a = Number(`${m[1]}.${m[2]}`);
   const b = Number(`${m[3]}.${m[4]}`);
   if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
 
-  // SPX dùng đúng các cặp này.
   const ranges = [
     ['0_2', 0, 2.001],
     ['2_4', 2.001, 4.001],
@@ -2377,17 +2223,6 @@ function extractWeightRange(text) {
   return null;
 }
 
-function detectScanPrefix(text) {
-  const t = normalizeOcrText(text);
-  if (/\b(đã\s*trả|da\s*tra|trả hàng|tra hang|hoàn hàng|hoan hang|return)\b/.test(t)) return 'ret_inp';
-  if (/\b(đã\s*lấy|da\s*lay|lấy hàng|lay hang|pickup)\b/.test(t)) return 'pick_inp';
-  return 'del_inp';
-}
-
-/* Nhận diện tab đang active bằng gạch cam dưới tab.
- * Đây là điểm quan trọng: ảnh "Đã trả hàng" vẫn chứa chữ "Đã giao hàng",
- * nên không thể phân loại tab chỉ bằng OCR text.
- */
 function detectActiveTabFromImage(canvas) {
   try {
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -2400,8 +2235,7 @@ function detectActiveTabFromImage(canvas) {
       let count = 0;
       for (let y = y0; y <= y1; y++) {
         const d = ctx.getImageData(x, y, 1, 1).data;
-        const r=d[0], g=d[1], b=d[2];
-        if (r > 175 && g > 45 && g < 180 && b < 130 && r > g * 1.35) count++;
+        if (d[0] > 175 && d[1] > 45 && d[1] < 180 && d[2] < 130 && d[0] > d[1] * 1.35) count++;
       }
       if (count >= 2) {
         if (runStart < 0) runStart = x;
@@ -2435,93 +2269,25 @@ function extractOcrDate(text) {
   return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 }
 
-function integerFromOcrToken(text) {
-  const t = normalizeOcrText(text).trim();
-  // Chỉ nhận token là số nguyên độc lập; tuyệt đối không lấy 0/001 từ 0.000.
-  if (!/^\d{1,5}$/.test(t)) return null;
-  const n = Number(t);
-  return Number.isFinite(n) && n >= 0 && n <= 99999 ? n : null;
-}
-
-/*
- * Lấy số lượng theo TOẠ ĐỘ của OCR.
- * Dải cân nằm bên trái, số "N Đơn hàng" nằm bên phải trong cùng card.
- * Nếu OCR tách thành nhiều dòng, chỉ tìm trong vùng Y ngay bên dưới dải đó,
- * không quét cả ảnh để tránh lấy số của card kế tiếp.
- */
 function quantitiesFromOcr(ocrData, range) {
   const lines = ocrData.lines || [];
-  const words = ocrData.words || [];
   const hits = [];
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    const id = extractWeightRange(line.text);
-    if (id !== range.id) continue;
+    if (extractWeightRange(line.text) !== range.id) continue;
 
-    const lb = line.bbox || {x0:0,x1:99999,y0:0,y1:99999};
-    const lineWords = words.filter(w => {
-      const b = w.bbox || {};
-      const cy = ((b.y0 || 0) + (b.y1 || 0)) / 2;
-      const cx = ((b.x0 || 0) + (b.x1 || 0)) / 2;
-      return cy >= (lb.y0 - 5) && cy <= (lb.y1 + 120) && cx > ((lb.x0 + lb.x1) / 2);
-    });
-
-    // Ưu tiên token số nguyên độc lập, nằm bên phải dải cân.
-    const nums = lineWords
-      .map(w => ({ n: integerFromOcrToken(w.text), w }))
-      .filter(x => x.n !== null)
-      .sort((a,b) => (a.w.bbox.x0 || 0) - (b.w.bbox.x0 || 0));
-
-    if (nums.length) {
-      // Số lượng thường là số đứng ngay trước "Đơn hàng".
-      const unitIdx = lineWords.findIndex(w => /đơn|don|hàng|hang/i.test(normalizeOcrText(w.text)));
-      if (unitIdx >= 0) {
-        const unitX = lineWords[unitIdx].bbox?.x0 ?? Infinity;
-        const beforeUnit = nums.filter(x => (x.w.bbox.x1 || 0) <= unitX + 8);
-        if (beforeUnit.length) {
-          hits.push(beforeUnit[beforeUnit.length - 1].n);
-          continue;
-        }
-      }
-      hits.push(nums[nums.length - 1].n);
-      continue;
-    }
-
-    // Fallback: OCR không tạo words nhưng line kế tiếp có "161 Đơn hàng".
-    for (const offset of [1, 2]) {
-      const next = lines[i + offset];
-      if (!next) continue;
-      const nt = normalizeOcrText(next.text);
-      const m = nt.match(/\b(\d{1,5})\b\s*(?:đơn|don)\b/);
-      if (m) {
+    for (let offset = 0; offset <= 2; offset++) {
+      const l = lines[i + offset];
+      if (!l) continue;
+      const m = normalizeOcrText(l.text).match(/\b(\d{1,5})\b\s*(?:đơn|don|hàng|hang)?/);
+      if (m && Number(m[1]) < 50000) {
         hits.push(Number(m[1]));
         break;
       }
     }
   }
   return hits;
-}
-
-function voteQuantity(values) {
-  const valid = values.filter(v => Number.isFinite(v) && v >= 0 && v <= 99999).map(Number);
-  if (!valid.length) return 0;
-  const freq = new Map();
-  valid.forEach(v => freq.set(v, (freq.get(v) || 0) + 1));
-  let best = valid[0], bestCount = -1;
-  for (const [v, count] of freq) {
-    if (count > bestCount || (count === bestCount && v > best)) {
-      best = v; bestCount = count;
-    }
-  }
-  return best;
-}
-
-async function runOcrPass(canvas, psm) {
-  return Tesseract.recognize(canvas, 'vie+eng', {
-    tessedit_pageseg_mode: String(psm),
-    preserve_interword_spaces: '1'
-  });
 }
 
 async function processLocalImageScan(input) {
@@ -2533,144 +2299,44 @@ async function processLocalImageScan(input) {
   banner.style.display = 'flex';
 
   const weightMap = [
-    { id: '0_2', min: '0.000', max: '2.001' },
-    { id: '2_4', min: '2.001', max: '4.001' },
-    { id: '4_6', min: '4.001', max: '6.001' },
-    { id: '6_8', min: '6.001', max: '8.001' },
-    { id: '8_10', min: '8.001', max: '10.001' },
-    { id: '10_12', min: '10.001', max: '12.001' },
-    { id: '12_15', min: '12.001', max: '15.001' },
-    { id: 'over_15', min: '15.001', max: '' }
+    { id: '0_2' }, { id: '2_4' }, { id: '4_6' }, { id: '6_8' },
+    { id: '8_10' }, { id: '10_12' }, { id: '12_15' }, { id: 'over_15' }
   ];
 
   for (let i = 0; i < files.length; i++) {
     try {
-      statusText.innerText = `⚡ Chuẩn bị ảnh ${i + 1}/${files.length}...`;
+      statusText.innerText = `⚡ Đang xử lý ảnh ${i + 1}/${files.length}...`;
       const prepared = await preprocessImage(files[i]);
+      const activePrefix = detectActiveTabFromImage(prepared.original) || 'del_inp';
 
-      // Chỉ lấy tab từ ảnh gốc. Ảnh form nhập liệu không có gạch tab nên bị bỏ qua.
-      const activePrefix = detectActiveTabFromImage(prepared.original);
-      if (!activePrefix) {
-        console.warn('[SPX OCR] Bỏ qua ảnh không nhận diện được tab SPX:', files[i].name);
-        continue;
-      }
+      const res = await Tesseract.recognize(prepared.gray, 'vie+eng', {
+        tessedit_pageseg_mode: '6'
+      });
 
-      const passes = [
-        { canvas: prepared.original, psm: 6 },
-        { canvas: prepared.gray, psm: 6 },
-        { canvas: prepared.contrast, psm: 11 },
-        { canvas: prepared.binary, psm: 6 }
-      ];
-
-      const results = [];
-      for (let p = 0; p < passes.length; p++) {
-        statusText.innerText = `🔎 OCR ${i + 1}/${files.length} — ${activePrefix === 'del_inp' ? 'Giao' : activePrefix === 'pick_inp' ? 'Lấy' : 'Hoàn'} — lượt ${p + 1}/${passes.length}...`;
-        try {
-          const result = await runOcrPass(passes[p].canvas, passes[p].psm);
-          results.push(result.data);
-        } catch (e) {
-          console.warn('OCR pass lỗi:', e);
-        }
-      }
-
-      if (!results.length) throw new Error('Không có kết quả OCR');
-
-      // Chỉ lấy ngày từ ảnh nguồn, không để ảnh form nhập liệu ghi đè ngày.
-      const allText = results.map(r => r.text || '').join('\n');
-      const detectedDate = extractOcrDate(allText);
-      if (detectedDate) document.getElementById('inputDate').value = detectedDate;
+      const d = extractOcrDate(res.data.text);
+      if (d) document.getElementById('inputDate').value = d;
 
       weightMap.forEach(range => {
-        const candidates = [];
-        results.forEach(r => {
-          quantitiesFromOcr(r, range).forEach(n => candidates.push(n));
-        });
-        if (candidates.length) {
-          const quantity = voteQuantity(candidates);
+        const hits = quantitiesFromOcr(res.data, range);
+        if (hits.length) {
           const el = document.getElementById(`${activePrefix}_${range.id}`);
-          if (el) el.value = quantity;
+          if (el) el.value = hits[0];
         }
       });
-
-      console.log('[SPX OCR]', {
-        file: files[i].name,
-        activePrefix,
-        detectedDate,
-        results: results.map(r => ({ confidence: r.confidence, text: r.text }))
-      });
     } catch (err) {
-      console.error('Lỗi đọc ảnh:', err);
+      console.error(err);
     }
   }
 
-  statusText.innerText = `✓ Đã quét xong! Hãy kiểm tra lại số liệu trước khi Lưu.`;
-  setTimeout(() => { banner.style.display = 'none'; }, 3500);
+  statusText.innerText = `✓ Quét thành công! Vui lòng kiểm tra lại số liệu.`;
+  setTimeout(() => { banner.style.display = 'none'; }, 2500);
   input.value = '';
-}
-
-function saveRecord() {
-  let date = document.getElementById('inputDate').value;
-  if (!date) date = getTodayIso();
-
-  const parseWeights = (prefix) => ({
-    w0_2: parseInt(document.getElementById(`${prefix}_0_2`).value, 10) || 0,
-    w2_4: parseInt(document.getElementById(`${prefix}_2_4`).value, 10) || 0,
-    w4_6: parseInt(document.getElementById(`${prefix}_4_6`).value, 10) || 0,
-    w6_8: parseInt(document.getElementById(`${prefix}_6_8`).value, 10) || 0,
-    w8_10: parseInt(document.getElementById(`${prefix}_8_10`).value, 10) || 0,
-    w10_12: parseInt(document.getElementById(`${prefix}_10_12`).value, 10) || 0,
-    w12_15: parseInt(document.getElementById(`${prefix}_12_15`).value, 10) || 0,
-    wover_15: parseInt(document.getElementById(`${prefix}_over_15`).value, 10) || 0
-  });
-
-  const delWeights = parseWeights('del_inp');
-  const pickWeights = parseWeights('pick_inp');
-  const retWeights = parseWeights('ret_inp');
-
-  const delTotal = Object.values(delWeights).reduce((a, b) => a + b, 0);
-  const pickTotal = Object.values(pickWeights).reduce((a, b) => a + b, 0);
-  const retTotal = Object.values(retWeights).reduce((a, b) => a + b, 0);
-
-  const now = Date.now();
-  if (delTotal > 0) {
-    appData.delivery.unshift({ id: now, date, weights: delWeights });
-  }
-  if (pickTotal > 0) {
-    appData.pickup.unshift({ id: now + 1, date, weights: pickWeights });
-  }
-  if (retTotal > 0) {
-    if (!appData.return) appData.return = [];
-    appData.return.unshift({ id: now + 2, date, weights: retWeights });
-  }
-
-  closeModal();
-  updateAllViews();
-}
-
-function deleteRecord(type, id) {
-  if (confirm("Bạn muốn xóa bản ghi ngày này?")) {
-    appData[type] = appData[type].filter(item => item.id !== id);
-    updateAllViews();
-  }
-}
-
-function clearAllHistory() {
-  const totalEntries = appData.delivery.length + appData.pickup.length + (appData.return || []).length;
-  if (totalEntries === 0) return;
-  if (confirm("Bạn chắc chắn muốn xóa toàn bộ lịch sử?")) {
-    appData = { delivery: [], pickup: [], return: [] };
-    updateAllViews();
-  }
 }
 
 window.addEventListener('resize', () => { if (currentActiveTab === 'overview') drawSevenDayChart(); });
 
-// Khởi chạy
-try {
-  updateAllViews();
-} catch (err) {
-  console.error("Lỗi khi khởi tạo giao diện:", err);
-}
+// Khởi chạy an toàn
+updateAllViews();
 </script>
 </body>
 </html>

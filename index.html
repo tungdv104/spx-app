@@ -2256,15 +2256,103 @@ function preprocessImage(file) {
   });
 }
 
+// 1. Cập nhật hàm normalizeOcrText để làm sạch kỹ hơn
 function normalizeOcrText(text) {
   return (text || '')
     .toLowerCase()
-    .replace(/[|]/g, '1')
     .replace(/[“”]/g, '"')
     .replace(/[–—−]/g, '-')
     .replace(/,/g, '.')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+// 2. Sửa hàm integerFromOcrToken: Nhận diện cả l, I, |, ! thành số 1, o/O thành 0
+function integerFromOcrToken(text) {
+  let t = (text || '').trim();
+  
+  // Nếu chỉ là 1 ký tự dễ nhầm với số 1 (l, I, |, !, ])
+  if (/^[lI|!\]]$/.test(t)) return 1;
+  // Nếu là chữ o/O đứng một mình
+  if (/^[oO]$/.test(t)) return 0;
+
+  // Chuẩn hóa thay thế các lỗi nhầm lẫn phổ biến trong chuỗi số
+  t = t.replace(/[oOó]/g, '0')
+       .replace(/[lI|!\]]/g, '1')
+       .replace(/[^0-9]/g, '');
+
+  if (!t || !/^\d{1,5}$/.test(t)) return null;
+  const n = Number(t);
+  return Number.isFinite(n) && n >= 0 && n <= 99999 ? n : null;
+}
+
+// 3. Sửa hàm quantitiesFromOcr: Bắt chính xác cụm "... đơn" kể cả khi số 1 bị đọc thành chữ
+function quantitiesFromOcr(ocrData, range) {
+  const lines = ocrData.lines || [];
+  const words = ocrData.words || [];
+  const hits = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const id = extractWeightRange(line.text);
+    if (id !== range.id) continue;
+
+    const lb = line.bbox || {x0:0,x1:99999,y0:0,y1:99999};
+
+    // Cách 1: Quét trực tiếp dòng văn bản hiện tại tìm cụm "[ký tự số] đơn"
+    // Bắt được: "1 đơn", "l đơn", "I đơn", "| đơn", "13 đơn"...
+    const lineRaw = (line.text || '').replace(/\s+/g, ' ');
+    const directMatch = lineRaw.match(/([0-9lI|!\]oO]{1,5})\s*(?:đơn|don)\b/i);
+    if (directMatch) {
+      const parsed = integerFromOcrToken(directMatch[1]);
+      if (parsed !== null) {
+        hits.push(parsed);
+        continue;
+      }
+    }
+
+    // Cách 2: Phân tích theo toạ độ từ (Word bbox)
+    const lineWords = words.filter(w => {
+      const b = w.bbox || {};
+      const cy = ((b.y0 || 0) + (b.y1 || 0)) / 2;
+      const cx = ((b.x0 || 0) + (b.x1 || 0)) / 2;
+      return cy >= (lb.y0 - 5) && cy <= (lb.y1 + 120) && cx > ((lb.x0 + lb.x1) / 2);
+    });
+
+    const nums = lineWords
+      .map(w => ({ n: integerFromOcrToken(w.text), w }))
+      .filter(x => x.n !== null)
+      .sort((a,b) => (a.w.bbox.x0 || 0) - (b.w.bbox.x0 || 0));
+
+    if (nums.length) {
+      const unitIdx = lineWords.findIndex(w => /đơn|don|hàng|hang/i.test(w.text));
+      if (unitIdx >= 0) {
+        const unitX = lineWords[unitIdx].bbox?.x0 ?? Infinity;
+        const beforeUnit = nums.filter(x => (x.w.bbox.x1 || 0) <= unitX + 12);
+        if (beforeUnit.length) {
+          hits.push(beforeUnit[beforeUnit.length - 1].n);
+          continue;
+        }
+      }
+      hits.push(nums[nums.length - 1].n);
+      continue;
+    }
+
+    // Cách 3: Fallback quét các dòng bên dưới
+    for (const offset of [1, 2]) {
+      const next = lines[i + offset];
+      if (!next) continue;
+      const m = (next.text || '').match(/([0-9lI|!\]oO]{1,5})\s*(?:đơn|don)\b/i);
+      if (m) {
+        const parsed = integerFromOcrToken(m[1]);
+        if (parsed !== null) {
+          hits.push(parsed);
+          break;
+        }
+      }
+    }
+  }
+  return hits;
 }
 
 function normalizeWeightNumber(v) {
@@ -2357,63 +2445,7 @@ function extractOcrDate(text) {
   return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 }
 
-function integerFromOcrToken(text) {
-  const t = normalizeOcrText(text).trim();
-  if (!/^\d{1,5}$/.test(t)) return null;
-  const n = Number(t);
-  return Number.isFinite(n) && n >= 0 && n <= 99999 ? n : null;
-}
 
-function quantitiesFromOcr(ocrData, range) {
-  const lines = ocrData.lines || [];
-  const words = ocrData.words || [];
-  const hits = [];
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const id = extractWeightRange(line.text);
-    if (id !== range.id) continue;
-
-    const lb = line.bbox || {x0:0,x1:99999,y0:0,y1:99999};
-    const lineWords = words.filter(w => {
-      const b = w.bbox || {};
-      const cy = ((b.y0 || 0) + (b.y1 || 0)) / 2;
-      const cx = ((b.x0 || 0) + (b.x1 || 0)) / 2;
-      return cy >= (lb.y0 - 5) && cy <= (lb.y1 + 120) && cx > ((lb.x0 + lb.x1) / 2);
-    });
-
-    const nums = lineWords
-      .map(w => ({ n: integerFromOcrToken(w.text), w }))
-      .filter(x => x.n !== null)
-      .sort((a,b) => (a.w.bbox.x0 || 0) - (b.w.bbox.x0 || 0));
-
-    if (nums.length) {
-      const unitIdx = lineWords.findIndex(w => /đơn|don|hàng|hang/i.test(normalizeOcrText(w.text)));
-      if (unitIdx >= 0) {
-        const unitX = lineWords[unitIdx].bbox?.x0 ?? Infinity;
-        const beforeUnit = nums.filter(x => (x.w.bbox.x1 || 0) <= unitX + 8);
-        if (beforeUnit.length) {
-          hits.push(beforeUnit[beforeUnit.length - 1].n);
-          continue;
-        }
-      }
-      hits.push(nums[nums.length - 1].n);
-      continue;
-    }
-
-    for (const offset of [1, 2]) {
-      const next = lines[i + offset];
-      if (!next) continue;
-      const nt = normalizeOcrText(next.text);
-      const m = nt.match(/\b(\d{1,5})\b\s*(?:đơn|don)\b/);
-      if (m) {
-        hits.push(Number(m[1]));
-        break;
-      }
-    }
-  }
-  return hits;
-}
 
 function voteQuantity(values) {
   const valid = values.filter(v => Number.isFinite(v) && v >= 0 && v <= 99999).map(Number);

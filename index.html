@@ -1858,9 +1858,8 @@ function openAddModal() {
 function closeModal() {
   document.getElementById('entryModal').classList.remove('active');
 }
-
 /* =========================================================
-   BỘ XỬ LÝ QUÉT ẢNH NỘI BỘ (OFFLINE TESSERACT V5)
+   BỘ XỬ LÝ QUÉT ẢNH NỘI BỘ (PHÂN TÍCH THEO DÒNG & TOẠ ĐỘ)
 ========================================================= */
 function preprocessImage(file) {
   return new Promise((resolve, reject) => {
@@ -1868,26 +1867,34 @@ function preprocessImage(file) {
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = img.width;
-        canvas.height = img.height;
-
-        ctx.drawImage(img, 0, 0);
-        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const d = imgData.data;
-
-        // Tăng độ tương phản: Chữ thành đen tuyền, nền thành trắng tinh
-        for (let i = 0; i < d.length; i += 4) {
-          const v = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-          const color = v > 150 ? 255 : 0;
-          d[i] = color;
-          d[i + 1] = color;
-          d[i + 2] = color;
+        // Thu nhỏ nhẹ nếu ảnh chụp màn hình quá khủng để tăng tốc quét
+        const maxDim = 1600;
+        let w = img.width;
+        let h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) { h = Math.round(h * (maxDim / w)); w = maxDim; }
+          else { w = Math.round(w * (maxDim / h)); h = maxDim; }
         }
 
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = w;
+        canvas.height = h;
+        ctx.drawImage(img, 0, 0, w, h);
+
+        // Nâng tương phản grayscale chuyên biệt cho bảng số liệu
+        const imgData = ctx.getImageData(0, 0, w, h);
+        const d = imgData.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+          // Chữ đen nét hơn, loại bỏ màu nền mờ nhạt
+          const v = lum > 165 ? 255 : 0;
+          d[i] = v;
+          d[i + 1] = v;
+          d[i + 2] = v;
+        }
         ctx.putImageData(imgData, 0, 0);
-        resolve(canvas);
+        resolve({ canvas, width: w, height: h });
       };
       img.onerror = reject;
       img.src = e.target.result;
@@ -1906,24 +1913,17 @@ async function processLocalImageScan(input) {
   banner.style.display = 'flex';
 
   for (let i = 0; i < files.length; i++) {
-    statusText.innerText = `⚡ Đang xử lý ảnh ${i + 1}/${files.length}...`;
+    statusText.innerText = `⚡ Đang quét ảnh ${i + 1}/${files.length}...`;
 
     try {
-      const canvas = await preprocessImage(files[i]);
-      let extractedText = '';
+      const { canvas, width, height } = await preprocessImage(files[i]);
+      
+      // Quét với Tesseract v5 lấy cấu trúc từng dòng (blocks/lines)
+      const ocrResult = await Tesseract.recognize(canvas, 'vie+eng', {
+        tessedit_pageseg_mode: '6' // Chế độ đọc khối đồng nhất theo chiều dọc
+      });
 
-      if ('TextDetector' in window) {
-        const detector = new window.TextDetector();
-        const detected = await detector.detect(canvas);
-        extractedText = detected.map(b => b.rawValue).join('\n');
-      } else {
-        const result = await Tesseract.recognize(canvas, 'eng', {
-          tessedit_char_whitelist: '0123456789.-/ Đơn hàngGiaolấytrảhoànkg>'
-        });
-        extractedText = result.data.text;
-      }
-
-      parseLocalSpxData(extractedText);
+      parseAccurateSpxData(ocrResult.data, canvas);
     } catch (err) {
       console.error("Lỗi đọc ảnh:", err);
     }
@@ -1934,41 +1934,88 @@ async function processLocalImageScan(input) {
   input.value = '';
 }
 
-function parseLocalSpxData(raw) {
-  const text = raw.toLowerCase().replace(/,/g, '.');
+function parseAccurateSpxData(ocrData, canvas) {
+  const fullText = (ocrData.text || '').toLowerCase().replace(/,/g, '.');
 
-  const dateMatch = text.match(/(\d{1,2})\/(\d{1,2})/);
+  // 1. BẮT CHÍNH XÁC NGÀY (VD: "09/09" hoặc "03/09")
+  const dateMatch = fullText.match(/(\d{1,2})\/(\d{1,2})/);
   if (dateMatch) {
     const curYear = new Date().getFullYear();
-    const d = dateMatch[1].padStart(2, '0');
-    const m = dateMatch[2].padStart(2, '0');
-    document.getElementById('inputDate').value = `${curYear}-${m}-${d}`;
+    const day = dateMatch[1].padStart(2, '0');
+    const month = dateMatch[2].padStart(2, '0');
+    document.getElementById('inputDate').value = `${curYear}-${month}-${day}`;
   }
 
+  // 2. XÁC ĐỊNH LOẠI ĐƠN THEO VỊ TRÍ GẠCH ĐỎ/TAB
+  // Mặc định phân tích xem từ nào xuất hiện gần mốc tổng đơn nhất
   let prefix = 'del_inp';
-  if (text.includes('lấy') || text.includes('lay')) prefix = 'pick_inp';
-  else if (text.includes('trả') || text.includes('tra') || text.includes('hoàn')) prefix = 'ret_inp';
+  const topText = fullText.substring(0, 300);
+  
+  if (topText.includes('đã lấy') || topText.includes('da lay')) {
+    // Nếu cả 3 chữ cùng hiện ở thanh header thì kiểm tra từ xuất hiện sau tiêu đề
+    const pickIdx = fullText.indexOf('đã lấy');
+    const delIdx = fullText.indexOf('đã giao');
+    const retIdx = fullText.indexOf('đã trả');
+    
+    // So khớp dựa trên từ khóa tổng đơn hàng
+    if (fullText.includes('trả hàng') && retIdx < 150) prefix = 'ret_inp';
+    else if (fullText.includes('lấy') && pickIdx < 150) prefix = 'pick_inp';
+    else prefix = 'del_inp';
+  }
 
-  const rules = [
-    { id: '0_2', re: /0\.000.*?2\.001[\s\S]{0,40}?(\d+)/i },
-    { id: '2_4', re: /2\.001.*?4\.001[\s\S]{0,40}?(\d+)/i },
-    { id: '4_6', re: /4\.001.*?6\.001[\s\S]{0,40}?(\d+)/i },
-    { id: '6_8', re: /6\.001.*?8\.001[\s\S]{0,40}?(\d+)/i },
-    { id: '8_10', re: /8\.001.*?10\.001[\s\S]{0,40}?(\d+)/i },
-    { id: '10_12', re: /10\.001.*?12\.001[\s\S]{0,40}?(\d+)/i },
-    { id: '12_15', re: /12\.001.*?15\.001[\s\S]{0,40}?(\d+)/i },
-    { id: 'over_15', re: />\s*15\.001[\s\S]{0,40}?(\d+)/i }
+  // Phân loại đơn giản hơn nếu người dùng chỉ chụp bảng:
+  if (fullText.includes('đã trả hàng') && !fullText.includes('đã giao hàng')) prefix = 'ret_inp';
+  if (fullText.includes('đã lấy') && !fullText.includes('đã giao hàng')) prefix = 'pick_inp';
+
+  // 3. BÓC TÁCH TỪNG DẢI CÂN NẶNG & SỐ ĐƠN ĐI KÈM
+  const weightMap = [
+    { id: '0_2', min: '0.000', max: '2.001' },
+    { id: '2_4', min: '2.001', max: '4.001' },
+    { id: '4_6', min: '4.001', max: '6.001' },
+    { id: '6_8', min: '6.001', max: '8.001' },
+    { id: '8_10', min: '8.001', max: '10.001' },
+    { id: '10_12', min: '10.001', max: '12.001' },
+    { id: '12_15', min: '12.001', max: '15.001' },
+    { id: 'over_15', min: '15.001', max: '' }
   ];
 
-  rules.forEach(rule => {
-    let m = text.match(rule.re);
-    if (!m) {
-      const reversePattern = new RegExp(`(\\d+)[^\\d]{1,20}${rule.id.replace('_', '.*?')}`, 'i');
-      m = text.match(reversePattern);
+  // Duyệt qua từng line mà Tesseract nhận dạng được kèm toạ độ
+  const lines = ocrData.lines || [];
+
+  weightMap.forEach(range => {
+    let quantity = 0;
+
+    // Tìm dòng chứa dải khối lượng
+    const lineIndex = lines.findIndex(l => {
+      const clean = l.text.toLowerCase().replace(/,/g, '.');
+      return clean.includes(range.min) || (range.max && clean.includes(range.max));
+    });
+
+    if (lineIndex !== -1) {
+      // Số đơn hàng luôn nằm cùng dòng hoặc dòng ngay sau đó bên tay phải
+      const candidateLines = [
+        lines[lineIndex].text,
+        lines[lineIndex + 1] ? lines[lineIndex + 1].text : '',
+        lines[lineIndex - 1] ? lines[lineIndex - 1].text : ''
+      ].join(' ');
+
+      // Tìm cụm "... Đơn hàng" hoặc chữ số đứng trước "đơn"
+      const match = candidateLines.match(/(\d+)\s*(?:đơn|don|đơn hàng|don hang)/i);
+      if (match && match[1]) {
+        quantity = parseInt(match[1], 10);
+      } else {
+        // Bắt các số nguyên đứng độc lập (loại bỏ các số dải cân 0.000, 2.001)
+        const pureNums = candidateLines.replace(/\d+\.\d+/g, '').match(/\b\d+\b/g);
+        if (pureNums && pureNums.length > 0) {
+          quantity = parseInt(pureNums[pureNums.length - 1], 10);
+        }
+      }
     }
-    if (m && m[1]) {
-      const el = document.getElementById(`${prefix}_${rule.id}`);
-      if (el) el.value = parseInt(m[1], 10);
+
+    // Điền kết quả vào đúng ô
+    if (quantity > 0) {
+      const el = document.getElementById(`${prefix}_${range.id}`);
+      if (el) el.value = quantity;
     }
   });
 }

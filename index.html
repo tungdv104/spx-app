@@ -152,6 +152,7 @@
   /* BOTTOM TAB BAR */
   .vertical-sidebar {
     position: fixed;
+    z-index: 30 !important;
     bottom: 0;
     left: 0;
     right: 0;
@@ -564,6 +565,20 @@
 }
 
   .modal-shade.active { display: flex; }
+.modal-shade {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  z-index: 99999 !important; /* Đè lên toàn bộ app */
+}
+
+/* 3. Giới hạn chiều cao modal và khóa cứng thanh chứa nút Lưu */
 .modal-box {
   background: var(--glass-surface);
   backdrop-filter: blur(24px);
@@ -574,41 +589,27 @@
   border: 1px solid var(--glass-border);
   border-bottom: none;
   box-shadow: var(--glass-shadow);
-  max-height: 90vh;
+  height: 85vh; /* Cố định chiều cao 85% màn hình để phần chân không bị lọt ra ngoài */
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
-.modal-box-head {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--glass-border-subtle);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-shrink: 0;
-}
-.modal-box-head h3 { font-size: 14px; font-weight: 700; }
-.modal-close-btn { border: none; background: transparent; font-size: 18px; color: var(--text-muted); cursor: pointer; padding: 4px; }
-
-.modal-body { 
-  padding: 14px; 
+.modal-body {
+  padding: 12px 14px;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
   flex: 1 1 auto;
-  padding-bottom: 20px;
 }
 
-.modal-box-foot { 
-  padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 12px)) !important; 
-  border-top: 1px solid var(--glass-border-subtle); 
-  background: var(--glass-surface); 
-  display: flex; 
-  justify-content: flex-end; 
-  gap: 10px; 
-  flex-shrink: 0 !important;
-  position: relative;
-  z-index: 10;
+.modal-box-foot {
+  padding: 12px 16px calc(14px + env(safe-area-inset-bottom, 12px)) !important;
+  border-top: 1px solid var(--glass-border-subtle);
+  background: var(--glass-surface);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0 !important; /* Không bao giờ bị co lại */
 }
 webkit-overflow-scrolling: touch;
     flex: 1;
@@ -1165,13 +1166,20 @@ button[type="submit"],
       <button class="modal-close-btn" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
-      <div style="margin-bottom: 12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-        <input type="file" id="localOcrInput" accept="image/*" multiple style="display:none" onchange="processLocalImageScan(this)">
-        <button type="button" class="btn btn-primary" onclick="document.getElementById('localOcrInput').click()">
-          📷 Quét ảnh tự động (Offline)
+            <!-- HÀNG TIỆN ÍCH: NÚT QUÉT ẢNH VÀ Ô CHỌN NGÀY NẰM CÙNG NHAU -->
+      <input type="file" id="localOcrInput" accept="image/*" multiple style="display:none" onchange="processLocalImageScan(this)">
+      
+      <div style="display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+        <button type="button" class="btn btn-primary" style="flex: 1; padding: 9px 8px; font-size: 13px;" onclick="document.getElementById('localOcrInput').click()">
+          📷 Quét ảnh (Offline)
         </button>
-        <span style="font-size:11px; color:var(--text-muted);">(Tự động nhận diện Giao / Lấy / Trả)</span>
+        <input type="date" id="inputDate" class="input-control" style="flex: 1; padding: 8px 10px; font-size: 14px; font-weight: 700; text-align: center;">
       </div>
+
+      <div class="scan-status-banner" id="scanStatusBanner">
+        <span id="scanStatusText">Đang đọc số liệu trên ảnh...</span>
+      </div>
+
 
       <div class="scan-status-banner" id="scanStatusBanner">
         <span id="scanStatusText">Đang đọc số liệu trên ảnh...</span>

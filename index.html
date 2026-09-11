@@ -12,6 +12,9 @@
                    radial-gradient(at 100% 100%, #dcfce7 0px, transparent 50%),
                    radial-gradient(at 0% 100%, #e0f2fe 0px, transparent 50%),
                    #f8fafc;
+    --glass-violet-text: #6d28d9;
+    --glass-sky-text: #0284c7;
+    --glass-amber-text: #d97706;
     --glass-surface: rgba(255, 255, 255, 0.85);
     --glass-subtle: rgba(255, 255, 255, 0.6);
     --glass-border: rgba(255, 255, 255, 0.85);
@@ -1766,19 +1769,31 @@ function drawSevenDayChart() {
     ctx.fillText(val.toLocaleString('vi-VN'), pad.left-5, yy);
   }
 
-  const drawLine = (values, dash, label, offset) => {
+  const drawLine = (values, colorVar, fallbackColor) => {
     ctx.beginPath();
-    values.forEach((v,i) => i ? ctx.lineTo(x(i),y(v)) : ctx.moveTo(x(i),y(v)));
-    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue(dash).trim() || '#ff5722';
-    ctx.lineWidth = 2.5; ctx.lineJoin='round'; ctx.lineCap='round'; ctx.stroke();
-    values.forEach((v,i) => {
-      ctx.beginPath(); ctx.arc(x(i),y(v),3,0,Math.PI*2); ctx.fillStyle=ctx.strokeStyle; ctx.fill();
+    values.forEach((v, i) => (i ? ctx.lineTo(x(i), y(v)) : ctx.moveTo(x(i), y(v))));
+    
+    // Lấy màu từ CSS hoặc fallback an toàn
+    let strokeCol = getComputedStyle(document.documentElement).getPropertyValue(colorVar).trim();
+    if (!strokeCol) strokeCol = fallbackColor;
+    
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    
+    values.forEach((v, i) => {
+      ctx.beginPath();
+      ctx.arc(x(i), y(v), 3, 0, Math.PI * 2);
+      ctx.fillStyle = strokeCol;
+      ctx.fill();
     });
   };
-  // Use CSS theme colors already defined by the app.
-  drawLine(series.del, '--glass-violet-text', 'Giao', 0);
-  drawLine(series.pick, '--glass-sky-text', 'Lấy', 0);
-  drawLine(series.ret, '--glass-amber-text', 'Hoàn', 0);
+
+  drawLine(series.del, '--glass-violet-text', '#7c3aed');
+  drawLine(series.pick, '--glass-sky-text', '#0284c7');
+  drawLine(series.ret, '--glass-amber-text', '#d97706');
 
   ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim();
   ctx.textAlign='center'; ctx.textBaseline='top';
@@ -2562,7 +2577,11 @@ function clearAllHistory() {
 window.addEventListener('resize', () => { if (currentActiveTab === 'overview') drawSevenDayChart(); });
 
 // Khởi chạy
-updateAllViews();
+try {
+  updateAllViews();
+} catch (err) {
+  console.error("Lỗi khi khởi tạo giao diện:", err);
+}
 </script>
 </body>
 </html>

@@ -1253,28 +1253,38 @@
 // ==========================================
 // CƠ CHẾ TỰ ĐỘNG CẬP NHẬT CHUẨN XÁC 100%
 // ==========================================
-const CURRENT_APP_VERSION = "2.2.3"; // <-- Mỗi khi sửa code xong, tăng số này lên (ví dụ 2.2.4)
-
+// ==========================================
+// TỰ ĐỘNG PHÁT HIỆN SỬA FILE INDEX TRÊN GITHUB
+// ==========================================
 async function checkForAppUpdates() {
   try {
-    // Gọi thẳng file version.json kèm timestamp và chặn cache triệt để
-    const res = await fetch(`version.json?nocache=${Date.now()}`, {
+    // Gọi API của GitHub để lấy mã hash (SHA) của lần Commit mới nhất trên file index.html
+    const apiUrl = `https://api.github.com/repos/tungdv104/spx-app/commits?path=index.html&page=1&per_page=1&t=${Date.now()}`;
+    
+    const res = await fetch(apiUrl, {
       cache: 'no-store',
-      headers: {
-        'Pragma': 'no-cache',
-        'Cache-Control': 'no-cache'
-      }
+      headers: { 'Accept': 'application/vnd.github.v3+json' }
     });
 
     if (res.ok) {
       const data = await res.json();
-      const serverVer = String(data.version || '').trim();
-      const localVer = String(CURRENT_APP_VERSION).trim();
+      if (Array.isArray(data) && data.length > 0) {
+        const latestCommitSha = data[0].sha; // Mã định danh của lần commit mới nhất
+        const savedCommitSha = localStorage.getItem('spx_last_commit_sha');
 
-      // Nếu số version trên GitHub khác số trong code máy -> Bật thông báo
-      if (serverVer && serverVer !== localVer) {
-        const bar = document.getElementById('updateNotificationBar');
-        if (bar) bar.style.display = 'flex';
+        // Lần đầu tiên mở app: Lưu lại mã commit hiện tại làm mốc
+        if (!savedCommitSha) {
+          localStorage.setItem('spx_last_commit_sha', latestCommitSha);
+          return;
+        }
+
+        // Nếu mã commit trên GitHub KHÁC mã máy đang giữ -> Có code mới!
+        if (latestCommitSha !== savedCommitSha) {
+          const bar = document.getElementById('updateNotificationBar');
+          if (bar) bar.style.display = 'flex';
+          // Lưu tạm mã commit mới vào bộ nhớ tạm
+          window.pendingCommitSha = latestCommitSha;
+        }
       }
     }
   } catch (err) {
@@ -1282,10 +1292,10 @@ async function checkForAppUpdates() {
   }
 }
 
-// Kiểm tra khi vừa mở app
+// Kiểm tra ngay khi mở app
 checkForAppUpdates();
 
-// Kiểm tra lại khi app quay lại từ chạy nền
+// Kiểm tra lại khi chuyển từ ứng dụng khác quay lại app
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     checkForAppUpdates();
@@ -1298,7 +1308,7 @@ function showUpdateResult(message, success) {
   toast.textContent = message;
   toast.className = 'update-result-toast ' + (success ? 'update-result-success' : 'update-result-error');
   toast.style.display = 'block';
-  setTimeout(() => { toast.style.display = 'none'; }, 3500);
+  setTimeout(() => { toast.style.display = 'none'; }, 4000);
 }
 
 function setUpdateProgress(percent, status) {
@@ -1316,22 +1326,34 @@ function forceAppReload() {
   if (bar) bar.style.display = 'none';
   if (overlay) overlay.style.display = 'flex';
 
-  setUpdateProgress(30, 'Đang tải bản cập nhật mới...');
+  setUpdateProgress(25, 'Đang kéo mã nguồn mới từ máy chủ...');
+
+  // Lưu mã commit mới vào máy để sau khi reload không bị hiện nút lại
+  if (window.pendingCommitSha) {
+    localStorage.setItem('spx_last_commit_sha', window.pendingCommitSha);
+  }
+  localStorage.setItem('spx_update_pending', '1');
 
   setTimeout(() => {
-    setUpdateProgress(70, 'Đang ghi đè bộ nhớ ứng dụng...');
-    localStorage.setItem('spx_update_pending', '1');
-
+    setUpdateProgress(70, 'Đang làm mới dữ liệu...');
     setTimeout(() => {
-      setUpdateProgress(100, 'Hoàn tất! Đang mở lại app...');
+      setUpdateProgress(100, 'Hoàn tất! Đang khởi động lại...');
       setTimeout(() => {
-        // Buộc WebView đổi sang URL mới có chứa timestamp để xóa sạch cache cũ
-        const cleanUrl = window.location.href.split('?')[0];
-        window.location.replace(cleanUrl + '?v=' + Date.now());
-      }, 400);
+        // Buộc trình duyệt đổi URL có timestamp phá sạch 100% cache cũ
+        const baseUrl = window.location.href.split('?')[0];
+        window.location.replace(baseUrl + '?v=' + Date.now());
+      }, 350);
     }, 400);
   }, 400);
 }
+
+// Thông báo sau khi trang tải lại thành công
+(function showUpdateSuccessAfterReload() {
+  if (localStorage.getItem('spx_update_pending') === '1') {
+    localStorage.removeItem('spx_update_pending');
+    setTimeout(() => showUpdateResult('✅ Đã cập nhật phiên bản mới nhất thành công!', true), 500);
+  }
+})();
 
 // Báo thành công sau khi trang reload
 (function showUpdateSuccessAfterReload() {

@@ -2225,21 +2225,99 @@ function normalizeOcrText(text) {
     .toLowerCase()
     .replace(/[|]/g, '1')
     .replace(/[“”]/g, '"')
-    .replace(/[–—]/g, '-')
+    .replace(/[–—−]/g, '-')
     .replace(/,/g, '.')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
+/*
+ * SPX OCR: KHÔNG đoán theo từng đầu mút của dải cân.
+ * Ví dụ dòng "0.000 - 2.001" trước đây đồng thời bị coi là
+ * dải 0-2, 2-4, 4-6... vì parser chỉ tìm thấy "2.001".
+ * Nay phải khớp NGUYÊN CẶP dải cân.
+ */
+function normalizeWeightNumber(v) {
+  let s = String(v || '').trim().replace(/,/g, '.');
+  s = s.replace(/[^0-9.]/g, '');
+  return s;
+}
+
+function extractWeightRange(text) {
+  const t = normalizeOcrText(text)
+    .replace(/[oó]/g, '0')
+    .replace(/[lI|]/g, '1');
+
+  // Chuẩn hoá các lỗi OCR thường gặp trong số thập phân.
+  const m = t.match(/(\d{1,2})\s*[.]?\s*(\d{3})\s*-\s*(\d{1,2})\s*[.]?\s*(\d{3})/);
+  if (!m) return null;
+
+  const a = Number(`${m[1]}.${m[2]}`);
+  const b = Number(`${m[3]}.${m[4]}`);
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+
+  // SPX dùng đúng các cặp này.
+  const ranges = [
+    ['0_2', 0, 2.001],
+    ['2_4', 2.001, 4.001],
+    ['4_6', 4.001, 6.001],
+    ['6_8', 6.001, 8.001],
+    ['8_10', 8.001, 10.001],
+    ['10_12', 10.001, 12.001],
+    ['12_15', 12.001, 15.001]
+  ];
+  for (const [id, min, max] of ranges) {
+    if (Math.abs(a - min) < 0.01 && Math.abs(b - max) < 0.01) return id;
+  }
+  if (Math.abs(a - 15.001) < 0.01 && b >= 15) return 'over_15';
+  return null;
+}
+
 function detectScanPrefix(text) {
   const t = normalizeOcrText(text);
-  const hasPick = /\b(đã\s*lấy|da\s*lay|lấy hàng|lay hang|pickup)\b/.test(t);
-  const hasReturn = /\b(đã\s*trả|da\s*tra|trả hàng|tra hang|hoàn hàng|hoan hang|return)\b/.test(t);
-  const hasDelivery = /\b(đã\s*giao|da\s*giao|giao hàng|giao hang|delivery)\b/.test(t);
-
-  if (hasReturn && !hasDelivery) return 'ret_inp';
-  if (hasPick && !hasDelivery) return 'pick_inp';
+  if (/\b(đã\s*trả|da\s*tra|trả hàng|tra hang|hoàn hàng|hoan hang|return)\b/.test(t)) return 'ret_inp';
+  if (/\b(đã\s*lấy|da\s*lay|lấy hàng|lay hang|pickup)\b/.test(t)) return 'pick_inp';
   return 'del_inp';
+}
+
+/* Nhận diện tab đang active bằng gạch cam dưới tab.
+ * Đây là điểm quan trọng: ảnh "Đã trả hàng" vẫn chứa chữ "Đã giao hàng",
+ * nên không thể phân loại tab chỉ bằng OCR text.
+ */
+function detectActiveTabFromImage(canvas) {
+  try {
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const w = canvas.width, h = canvas.height;
+    const y0 = Math.round(h * 0.16), y1 = Math.round(h * 0.20);
+    const groups = [];
+    let runStart = -1, runEnd = -1;
+
+    for (let x = Math.round(w * 0.03); x < Math.round(w * 0.92); x++) {
+      let count = 0;
+      for (let y = y0; y <= y1; y++) {
+        const d = ctx.getImageData(x, y, 1, 1).data;
+        const r=d[0], g=d[1], b=d[2];
+        if (r > 175 && g > 45 && g < 180 && b < 130 && r > g * 1.35) count++;
+      }
+      if (count >= 2) {
+        if (runStart < 0) runStart = x;
+        runEnd = x;
+      } else if (runStart >= 0) {
+        if (runEnd - runStart + 1 >= Math.max(18, w * 0.04)) groups.push([runStart, runEnd]);
+        runStart = runEnd = -1;
+      }
+    }
+    if (runStart >= 0 && runEnd - runStart + 1 >= Math.max(18, w * 0.04)) groups.push([runStart, runEnd]);
+    if (!groups.length) return null;
+
+    const center = (groups[0][0] + groups[0][1]) / 2 / w;
+    if (center < 0.28) return 'del_inp';
+    if (center < 0.48) return 'pick_inp';
+    if (center < 0.72) return 'ret_inp';
+    return null;
+  } catch (e) {
+    return null;
+  }
 }
 
 function extractOcrDate(text) {
@@ -2253,41 +2331,69 @@ function extractOcrDate(text) {
   return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 }
 
-function lineLooksLikeWeightRange(text, range) {
-  const t = normalizeOcrText(text).replace(/\s+/g, '');
-  const min = String(range.min).replace('.', '[.,]');
-  const max = range.max ? String(range.max).replace('.', '[.,]') : null;
-  // Chấp nhận OCR lệch khoảng trắng/dấu chấm/phẩy ở dải cân.
-  if (new RegExp(min).test(t)) return true;
-  if (max && new RegExp(max).test(t)) return true;
-  return false;
+function integerFromOcrToken(text) {
+  const t = normalizeOcrText(text).trim();
+  // Chỉ nhận token là số nguyên độc lập; tuyệt đối không lấy 0/001 từ 0.000.
+  if (!/^\d{1,5}$/.test(t)) return null;
+  const n = Number(t);
+  return Number.isFinite(n) && n >= 0 && n <= 99999 ? n : null;
 }
 
-function extractIntegerCandidates(text) {
-  const t = normalizeOcrText(text);
-  // Loại các số thập phân trước khi lấy số lượng đơn.
-  const withoutDecimals = t.replace(/\d+\s*[.,]\s*\d+/g, ' ');
-  return (withoutDecimals.match(/\b\d{1,5}\b/g) || []).map(Number).filter(n => n >= 0 && n <= 99999);
-}
-
+/*
+ * Lấy số lượng theo TOẠ ĐỘ của OCR.
+ * Dải cân nằm bên trái, số "N Đơn hàng" nằm bên phải trong cùng card.
+ * Nếu OCR tách thành nhiều dòng, chỉ tìm trong vùng Y ngay bên dưới dải đó,
+ * không quét cả ảnh để tránh lấy số của card kế tiếp.
+ */
 function quantitiesFromOcr(ocrData, range) {
   const lines = ocrData.lines || [];
+  const words = ocrData.words || [];
   const hits = [];
 
   for (let i = 0; i < lines.length; i++) {
-    if (!lineLooksLikeWeightRange(lines[i].text, range)) continue;
+    const line = lines[i];
+    const id = extractWeightRange(line.text);
+    if (id !== range.id) continue;
 
-    // Ưu tiên cùng dòng; nếu OCR tách bảng thành nhiều dòng thì thử ±2 dòng.
-    for (const offset of [0, 1, -1, 2, -2]) {
-      const idx = i + offset;
-      if (idx < 0 || idx >= lines.length) continue;
-      const nums = extractIntegerCandidates(lines[idx].text);
-      for (const n of nums) {
-        // Các số 0/1/2... trong tiêu đề/dải cân không đáng tin bằng số lượng.
-        // Lấy ứng viên cuối cùng của dòng, vì cột số lượng thường nằm bên phải.
-        if (n >= 0) hits.push(n);
+    const lb = line.bbox || {x0:0,x1:99999,y0:0,y1:99999};
+    const lineWords = words.filter(w => {
+      const b = w.bbox || {};
+      const cy = ((b.y0 || 0) + (b.y1 || 0)) / 2;
+      const cx = ((b.x0 || 0) + (b.x1 || 0)) / 2;
+      return cy >= (lb.y0 - 5) && cy <= (lb.y1 + 120) && cx > ((lb.x0 + lb.x1) / 2);
+    });
+
+    // Ưu tiên token số nguyên độc lập, nằm bên phải dải cân.
+    const nums = lineWords
+      .map(w => ({ n: integerFromOcrToken(w.text), w }))
+      .filter(x => x.n !== null)
+      .sort((a,b) => (a.w.bbox.x0 || 0) - (b.w.bbox.x0 || 0));
+
+    if (nums.length) {
+      // Số lượng thường là số đứng ngay trước "Đơn hàng".
+      const unitIdx = lineWords.findIndex(w => /đơn|don|hàng|hang/i.test(normalizeOcrText(w.text)));
+      if (unitIdx >= 0) {
+        const unitX = lineWords[unitIdx].bbox?.x0 ?? Infinity;
+        const beforeUnit = nums.filter(x => (x.w.bbox.x1 || 0) <= unitX + 8);
+        if (beforeUnit.length) {
+          hits.push(beforeUnit[beforeUnit.length - 1].n);
+          continue;
+        }
       }
-      if (nums.length) break;
+      hits.push(nums[nums.length - 1].n);
+      continue;
+    }
+
+    // Fallback: OCR không tạo words nhưng line kế tiếp có "161 Đơn hàng".
+    for (const offset of [1, 2]) {
+      const next = lines[i + offset];
+      if (!next) continue;
+      const nt = normalizeOcrText(next.text);
+      const m = nt.match(/\b(\d{1,5})\b\s*(?:đơn|don)\b/);
+      if (m) {
+        hits.push(Number(m[1]));
+        break;
+      }
     }
   }
   return hits;
@@ -2338,7 +2444,13 @@ async function processLocalImageScan(input) {
       statusText.innerText = `⚡ Chuẩn bị ảnh ${i + 1}/${files.length}...`;
       const prepared = await preprocessImage(files[i]);
 
-      // 3 bản ảnh × 2 chế độ bố cục. Bản gốc giúp tránh mất nét do threshold.
+      // Chỉ lấy tab từ ảnh gốc. Ảnh form nhập liệu không có gạch tab nên bị bỏ qua.
+      const activePrefix = detectActiveTabFromImage(prepared.original);
+      if (!activePrefix) {
+        console.warn('[SPX OCR] Bỏ qua ảnh không nhận diện được tab SPX:', files[i].name);
+        continue;
+      }
+
       const passes = [
         { canvas: prepared.original, psm: 6 },
         { canvas: prepared.gray, psm: 6 },
@@ -2348,7 +2460,7 @@ async function processLocalImageScan(input) {
 
       const results = [];
       for (let p = 0; p < passes.length; p++) {
-        statusText.innerText = `🔎 OCR ảnh ${i + 1}/${files.length} — lượt ${p + 1}/${passes.length}...`;
+        statusText.innerText = `🔎 OCR ${i + 1}/${files.length} — ${activePrefix === 'del_inp' ? 'Giao' : activePrefix === 'pick_inp' ? 'Lấy' : 'Hoàn'} — lượt ${p + 1}/${passes.length}...`;
         try {
           const result = await runOcrPass(passes[p].canvas, passes[p].psm);
           results.push(result.data);
@@ -2359,29 +2471,28 @@ async function processLocalImageScan(input) {
 
       if (!results.length) throw new Error('Không có kết quả OCR');
 
+      // Chỉ lấy ngày từ ảnh nguồn, không để ảnh form nhập liệu ghi đè ngày.
       const allText = results.map(r => r.text || '').join('\n');
-      const prefix = detectScanPrefix(allText);
       const detectedDate = extractOcrDate(allText);
       if (detectedDate) document.getElementById('inputDate').value = detectedDate;
 
-      // Mỗi lượt OCR cho một ứng viên. Chọn giá trị xuất hiện ổn định nhất.
       weightMap.forEach(range => {
         const candidates = [];
         results.forEach(r => {
           quantitiesFromOcr(r, range).forEach(n => candidates.push(n));
         });
-        const quantity = voteQuantity(candidates);
-        if (quantity >= 0) {
-          const el = document.getElementById(`${prefix}_${range.id}`);
-          if (el && candidates.length) el.value = quantity;
+        if (candidates.length) {
+          const quantity = voteQuantity(candidates);
+          const el = document.getElementById(`${activePrefix}_${range.id}`);
+          if (el) el.value = quantity;
         }
       });
 
       console.log('[SPX OCR]', {
-        prefix,
+        file: files[i].name,
+        activePrefix,
         detectedDate,
-        rawTexts: results.map(r => r.text),
-        confidence: results.map(r => r.confidence)
+        results: results.map(r => ({ confidence: r.confidence, text: r.text }))
       });
     } catch (err) {
       console.error('Lỗi đọc ảnh:', err);

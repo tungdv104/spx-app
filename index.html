@@ -1133,25 +1133,37 @@ const CURRENT_VERSION = "2.2.1";
 // TỰ ĐỘNG KIỂM TRA PHIÊN BẢN MỚI TỪ GITHUB
 async function checkForAppUpdates() {
   try {
-    // Gọi thẳng file version.json cùng thư mục web kèm timestamp chống cache
-    const res = await fetch(`version.json?nocache=${Date.now()}`);
+    // Thêm Date.now() và headers no-cache để WebView KHÔNG ĐƯỢC PHÉP dùng file cũ trong máy
+    const res = await fetch(`version.json?nocache=${Date.now()}`, {
+      cache: 'no-store',
+      headers: {
+        'Pragma': 'no-cache',
+        'Cache-Control': 'no-cache'
+      }
+    });
+
     if (res.ok) {
       const data = await res.json();
-      console.log("Phiên bản trên máy:", CURRENT_VERSION, "| Trên mạng:", data.version);
-      
-      // Nếu số phiên bản trên mạng KHÁC với số trong code thì BẬT thanh thông báo
-      if (data.version && data.version !== CURRENT_VERSION) {
-        const notifyBar = document.getElementById('updateNotificationBar');
-        if (notifyBar) {
-          notifyBar.style.display = 'flex';
-        }
+      const serverVer = String(data.version || '').trim();
+      const localVer = String(CURRENT_VERSION).trim();
+
+      // Nếu số trên GitHub khác số trong máy -> BẬT THANH CẬP NHẬT
+      if (serverVer && serverVer !== localVer) {
+        const bar = document.getElementById('updateNotificationBar');
+        if (bar) bar.style.display = 'flex';
       }
     }
-  } catch (e) {
-    console.warn("Bỏ qua kiểm tra update:", e);
+  } catch (err) {
+    console.error("Lỗi kiểm tra cập nhật:", err);
   }
 }
 checkForAppUpdates();
+
+function forceAppReload() {
+  // Đổi hẳn đường dẫn URL có kèm mã thời gian để bắt WebView tải lại 100% HTML mới từ máy chủ
+  const baseUrl = window.location.href.split('?')[0];
+  window.location.replace(baseUrl + '?reload=' + Date.now());
+}
 
   
 
@@ -1168,11 +1180,7 @@ function toggleTheme() {
   localStorage.setItem('spx_theme', newTheme);
   updateThemeBtnUI(newTheme);
 }
-function forceAppReload() {
-  // Thêm tham số ngẫu nhiên vào đuôi URL để bắt WebView xóa cache và load code mới tức thì
-  const cleanUrl = window.location.href.split('?')[0];
-  window.location.href = cleanUrl + '?update=' + Date.now();
-}
+
 
 function updateThemeBtnUI(theme) {
   const icon = document.getElementById('themeIcon');

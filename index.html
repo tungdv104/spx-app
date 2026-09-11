@@ -681,6 +681,32 @@
     font-weight: 600;
   }
 
+  /* UPDATE PROGRESS */
+  .update-progress-overlay {
+    position: fixed; inset: 0; z-index: 10000;
+    display: none; align-items: center; justify-content: center;
+    padding: 20px; background: rgba(15,23,42,.38);
+    backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+  }
+  .update-progress-card {
+    width: min(420px, 100%); padding: 20px; border-radius: 18px;
+    background: var(--glass-surface); border: 1px solid var(--glass-border);
+    box-shadow: 0 18px 50px rgba(0,0,0,.22); text-align: center;
+  }
+  .update-progress-title { font-size: 16px; font-weight: 800; color: var(--text-primary); }
+  .update-progress-status { margin-top: 7px; font-size: 12px; color: var(--text-muted); min-height: 18px; }
+  .update-progress-track { height: 10px; margin-top: 16px; overflow: hidden; border-radius: 999px; background: var(--glass-border-subtle); }
+  .update-progress-fill { height: 100%; width: 0%; border-radius: inherit; background: var(--spx-orange); transition: width .25s ease; }
+  .update-progress-percent { margin-top: 8px; font-size: 12px; font-weight: 800; color: var(--spx-orange); }
+  .update-result-toast {
+    position: fixed; top: 70px; left: 12px; right: 12px; z-index: 10001;
+    max-width: 500px; margin: 0 auto; padding: 11px 14px; border-radius: 12px;
+    color: #fff; font-size: 13px; font-weight: 700; text-align: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,.22); display:none;
+  }
+  .update-result-success { background:#16a34a; }
+  .update-result-error { background:#dc2626; }
+
   @media (min-width: 768px) {
     .modal-shade { padding: 16px; align-items: center; }
     .modal-box { border-radius: var(--radius-lg); border-bottom: 1px solid var(--glass-border); }
@@ -728,6 +754,16 @@
   <span>🚀 Đã có phiên bản mới cập nhật!</span>
   <button class="btn" style="background:#fff; color:#0ea5e9; padding:4px 8px; font-size:11px; font-weight:700;" onclick="forceAppReload()">Cập nhật ngay</button>
 </div>
+
+<div class="update-progress-overlay" id="updateProgressOverlay" aria-live="polite">
+  <div class="update-progress-card">
+    <div class="update-progress-title" id="updateProgressTitle">🚀 Đang cập nhật ứng dụng</div>
+    <div class="update-progress-status" id="updateProgressStatus">Đang chuẩn bị...</div>
+    <div class="update-progress-track"><div class="update-progress-fill" id="updateProgressFill"></div></div>
+    <div class="update-progress-percent" id="updateProgressPercent">0%</div>
+  </div>
+</div>
+<div class="update-result-toast" id="updateResultToast"></div>
 
 <header class="top-nav">
   <div class="nav-title">
@@ -1191,14 +1227,11 @@
 async function checkForAppUpdates() {
   try {
     const res = await fetch(`index.html?check=${Date.now()}`, {
-      method: 'HEAD',
-      cache: 'no-store'
+      method: 'HEAD', cache: 'no-store'
     });
-
     if (res.ok) {
       const serverLastModified = res.headers.get('Last-Modified') || res.headers.get('ETag');
       const localLastModified = localStorage.getItem('spx_app_build_time');
-
       if (serverLastModified) {
         if (!localLastModified) {
           localStorage.setItem('spx_app_build_time', serverLastModified);
@@ -1216,15 +1249,98 @@ async function checkForAppUpdates() {
   }
 }
 
-function forceAppReload() {
-  if (window.newServerBuildTime) {
-    localStorage.setItem('spx_app_build_time', window.newServerBuildTime);
-  }
-  const baseUrl = window.location.href.split('?')[0];
-  window.location.replace(baseUrl + '?v=' + Date.now());
+function showUpdateResult(message, success) {
+  const toast = document.getElementById('updateResultToast');
+  if (!toast) return;
+  toast.textContent = message;
+  toast.className = 'update-result-toast ' + (success ? 'update-result-success' : 'update-result-error');
+  toast.style.display = 'block';
+  setTimeout(() => { toast.style.display = 'none'; }, 4500);
 }
 
-checkForAppUpdates();
+function setUpdateProgress(percent, status) {
+  const fill = document.getElementById('updateProgressFill');
+  const pct = document.getElementById('updateProgressPercent');
+  const st = document.getElementById('updateProgressStatus');
+  if (fill) fill.style.width = Math.max(0, Math.min(100, percent)) + '%';
+  if (pct) pct.textContent = Math.round(percent) + '%';
+  if (st) st.textContent = status;
+}
+
+function forceAppReload() {
+  const overlay = document.getElementById('updateProgressOverlay');
+  const bar = document.getElementById('updateNotificationBar');
+  if (bar) bar.style.display = 'none';
+  if (overlay) overlay.style.display = 'flex';
+
+  const title = document.getElementById('updateProgressTitle');
+  if (title) title.textContent = '🚀 Đang cập nhật ứng dụng';
+
+  let progress = 0;
+  setUpdateProgress(0, 'Đang kiểm tra phiên bản mới...');
+
+  const steps = [
+    [18, 'Đang kết nối máy chủ...'],
+    [36, 'Đang tải phiên bản mới...'],
+    [58, 'Đang kiểm tra dữ liệu ứng dụng...'],
+    [78, 'Đang chuẩn bị khởi động phiên bản mới...']
+  ];
+  let i = 0;
+  const timer = setInterval(() => {
+    if (i < steps.length) {
+      progress = steps[i][0];
+      setUpdateProgress(progress, steps[i][1]);
+      i++;
+    }
+  }, 350);
+
+  (async () => {
+    try {
+      // GET thật để xác nhận phiên bản mới có thể tải được trước khi reload.
+      const res = await fetch(`index.html?update=${Date.now()}`, {
+        method: 'GET', cache: 'no-store', credentials: 'same-origin'
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const html = await res.text();
+      if (!html || html.length < 1000) throw new Error('Nội dung phiên bản mới không hợp lệ');
+
+      clearInterval(timer);
+      setUpdateProgress(92, 'Đã tải thành công. Đang áp dụng phiên bản mới...');
+      if (window.newServerBuildTime) {
+        localStorage.setItem('spx_app_build_time', window.newServerBuildTime);
+      }
+      localStorage.setItem('spx_update_pending', '1');
+
+      setTimeout(() => {
+        setUpdateProgress(100, 'Hoàn tất! Đang khởi động lại...');
+        setTimeout(() => {
+          const baseUrl = window.location.href.split('?')[0];
+          window.location.replace(baseUrl + '?v=' + Date.now());
+        }, 450);
+      }, 350);
+    } catch (err) {
+      clearInterval(timer);
+      console.error('Cập nhật thất bại:', err);
+      setUpdateProgress(100, '❌ Không thể tải phiên bản mới. Kiểm tra mạng rồi thử lại.');
+      if (title) title.textContent = '❌ Cập nhật thất bại';
+      const fill = document.getElementById('updateProgressFill');
+      if (fill) fill.style.background = '#dc2626';
+      setTimeout(() => {
+        if (overlay) overlay.style.display = 'none';
+        showUpdateResult('❌ Cập nhật thất bại. Ứng dụng hiện tại vẫn được giữ nguyên.', false);
+      }, 1400);
+    }
+  })();
+}
+
+// Nếu lần trước đã cập nhật và reload thành công, báo rõ cho người dùng.
+(function showUpdateSuccessAfterReload() {
+  if (localStorage.getItem('spx_update_pending') === '1') {
+    localStorage.removeItem('spx_update_pending');
+    setTimeout(() => showUpdateResult('✅ Cập nhật thành công! Bạn đang dùng phiên bản mới nhất.', true), 500);
+  }
+})();
+
 
 function initTheme() {
   const savedTheme = localStorage.getItem('spx_theme') || 'light';

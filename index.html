@@ -727,14 +727,21 @@
 <body>
 
 <!-- THÔNG BÁO TỰ ĐỘNG CẬP NHẬT KHI CÓ BẢN MỚI TRÊN GITHUB -->
-<div class="update-bar-toast" id="updateNotificationBar">
-  <span>🚀 Đã có phiên bản mới cập nhật!</span>
-  <button class="btn" style="background:#fff; color:#0ea5e9; padding:4px 8px; font-size:11px; font-weight:700;" onclick="forceAppReload()">Cập nhật ngay</button>
+<!-- THANH THÔNG BÁO TIẾN TRÌNH CẬP NHẬT -->
+<div class="update-bar-toast" id="updateNotificationBar" style="flex-direction: column; gap: 8px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+    <span id="updateToastTitle">🚀 Đã có phiên bản mới cập nhật!</span>
+    <button class="btn" id="updateActionBtn" style="background:#fff; color:#0ea5e9; padding:4px 8px; font-size:11px; font-weight:700;" onclick="startAppUpdate()">Cập nhật ngay</button>
+  </div>
+  <!-- Thanh progress bar ẩn mặc định -->
+  <div id="updateProgressWrap" style="display:none; width: 100%; height: 5px; background: rgba(255,255,255,0.3); border-radius: 4px; overflow: hidden;">
+    <div id="updateProgressBar" style="width: 0%; height: 100%; background: #fff; transition: width 0.3s ease;"></div>
+  </div>
 </div>
 
 <header class="top-nav">
   <div class="nav-title">
-    <span>📦 SPX Chi Linh 2</span>
+    <span>📦Rider Performance Report</span>
   </div>
   <div class="header-actions">
     <button class="btn" id="themeToggleBtn" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
@@ -1230,13 +1237,63 @@ async function checkIndexFileChanges() {
   }
 }
 
-function forceAppReload() {
-  if (window.newServerHash) {
-    sessionStorage.setItem('spx_current_page_hash', window.newServerHash);
+async function startAppUpdate() {
+  const barWrap = document.getElementById('updateProgressWrap');
+  const bar = document.getElementById('updateProgressBar');
+  const title = document.getElementById('updateToastTitle');
+  const btn = document.getElementById('updateActionBtn');
+  const toast = document.getElementById('updateNotificationBar');
+
+  // Đổi trạng thái hiển thị
+  btn.style.display = 'none';
+  barWrap.style.display = 'block';
+  title.innerText = '⏳ Đang tải bản cập nhật mới...';
+  bar.style.width = '35%';
+
+  try {
+    const timestamp = Date.now();
+    bar.style.width = '65%';
+
+    // Thử fetch nạp dữ liệu để xác minh file tải về hợp lệ
+    const testFetch = await fetch(`index.html?v=${timestamp}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+
+    if (!testFetch.ok) throw new Error('Không thể tải file cập nhật');
+
+    bar.style.width = '100%';
+    title.innerText = '✅ Cập nhật thành công! Đang khởi động lại...';
+    toast.style.background = '#10b981'; // Chuyển màu xanh lá thành công
+
+    if (window.newServerHash) {
+      sessionStorage.setItem('spx_current_page_hash', window.newServerHash);
+    }
+
+    // Đợi 0.8 giây để người dùng thấy thông báo thành công rồi làm mới trang
+    setTimeout(() => {
+      const baseUrl = window.location.href.split('?')[0];
+      window.location.replace(baseUrl + '?v=' + timestamp);
+    }, 800);
+
+  } catch (err) {
+    console.error('Cập nhật thất bại:', err);
+    bar.style.width = '100%';
+    bar.style.background = '#ef4444';
+    toast.style.background = '#e11d48'; // Chuyển màu đỏ thất bại
+    title.innerText = '❌ Cập nhật thất bại. Vui lòng thử lại!';
+
+    // Khôi phục nút bấm để người dùng bấm thử lại
+    setTimeout(() => {
+      barWrap.style.display = 'none';
+      bar.style.width = '0%';
+      bar.style.background = '#fff';
+      toast.style.background = '#0ea5e9';
+      title.innerText = '🚀 Đã có phiên bản mới cập nhật!';
+      btn.style.display = 'inline-block';
+      btn.innerText = 'Thử lại';
+    }, 2500);
   }
-  // Thêm query timestamp để ép trình duyệt xóa sạch cache file cũ và nạp bản mới
-  const baseUrl = window.location.href.split('?')[0];
-  window.location.replace(baseUrl + '?v=' + Date.now());
 }
 
 // Chạy kiểm tra ngay khi mở app

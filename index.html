@@ -1134,19 +1134,22 @@ const CURRENT_VERSION = "2.2.2";
 // TỰ ĐỘNG KIỂM TRA PHIÊN BẢN MỚI TỪ GITHUB
 async function checkForAppUpdates() {
   try {
-    // Tự động kiểm tra file version.json trên repository của bạn
-    const res = await fetch(`https://raw.githubusercontent.com/tungdv104/spx-app/main/version.json?t=${Date.now()}`);
+    // Gọi thẳng file version.json qua GitHub Pages để không bị delay CDN
+    const res = await fetch(`version.json?t=${Date.now()}`);
     if (res.ok) {
       const data = await res.json();
+      console.log("Version máy:", CURRENT_VERSION, "Version mạng:", data.version);
       if (data.version && data.version !== CURRENT_VERSION) {
-        document.getElementById('updateNotificationBar').style.display = 'flex';
+        const bar = document.getElementById('updateNotificationBar');
+        if (bar) bar.style.display = 'flex';
       }
     }
   } catch (e) {
-    console.log("Kiểm tra update bỏ qua:", e);
+    console.log("Lỗi check version:", e);
   }
 }
 checkForAppUpdates();
+  
 
 function initTheme() {
   const savedTheme = localStorage.getItem('spx_theme') || 'light';

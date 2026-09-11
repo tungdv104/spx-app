@@ -697,7 +697,7 @@
 
 <header class="top-nav">
   <div class="nav-title">
-    <span>📦Chi Linh 2</span>
+    <span>📦Chi Linh 2.2.3</span>
   </div>
   <div class="header-actions">
     <button class="btn" onclick="openApiKeyModal()" title="Cấu hình Gemini Vision AI">🤖 Cài AI</button>
@@ -1133,37 +1133,49 @@ const CURRENT_VERSION = "2.2.1";
 // TỰ ĐỘNG KIỂM TRA PHIÊN BẢN MỚI TỪ GITHUB
 async function checkForAppUpdates() {
   try {
-    // Thêm Date.now() và headers no-cache để WebView KHÔNG ĐƯỢC PHÉP dùng file cũ trong máy
-    const res = await fetch(`version.json?nocache=${Date.now()}`, {
-      cache: 'no-store',
-      headers: {
-        'Pragma': 'no-cache',
-        'Cache-Control': 'no-cache'
-      }
+    // Gửi yêu cầu kiểm tra thời gian cập nhật của file index.html trên máy chủ
+    const res = await fetch(`index.html?check=${Date.now()}`, {
+      method: 'HEAD',
+      cache: 'no-store'
     });
 
     if (res.ok) {
-      const data = await res.json();
-      const serverVer = String(data.version || '').trim();
-      const localVer = String(CURRENT_VERSION).trim();
+      // Lấy thời điểm commit cuối cùng từ máy chủ GitHub Pages
+      const serverLastModified = res.headers.get('Last-Modified') || res.headers.get('ETag');
+      const localLastModified = localStorage.getItem('spx_app_build_time');
 
-      // Nếu số trên GitHub khác số trong máy -> BẬT THANH CẬP NHẬT
-      if (serverVer && serverVer !== localVer) {
-        const bar = document.getElementById('updateNotificationBar');
-        if (bar) bar.style.display = 'flex';
+      if (serverLastModified) {
+        // Nếu là lần đầu mở app, lưu lại mốc thời gian
+        if (!localLastModified) {
+          localStorage.setItem('spx_app_build_time', serverLastModified);
+          return;
+        }
+
+        // Nếu file trên GitHub có ngày giờ mới hơn trên máy -> Bật thông báo
+        if (serverLastModified !== localLastModified) {
+          const bar = document.getElementById('updateNotificationBar');
+          if (bar) bar.style.display = 'flex';
+          // Lưu tạm mốc mới để khi bấm cập nhật sẽ ghi nhận
+          window.newServerBuildTime = serverLastModified;
+        }
       }
     }
   } catch (err) {
-    console.error("Lỗi kiểm tra cập nhật:", err);
+    console.log("Bỏ qua kiểm tra update:", err);
   }
 }
-checkForAppUpdates();
 
 function forceAppReload() {
-  // Đổi hẳn đường dẫn URL có kèm mã thời gian để bắt WebView tải lại 100% HTML mới từ máy chủ
+  // Ghi nhận máy đã lên bản mới nhất
+  if (window.newServerBuildTime) {
+    localStorage.setItem('spx_app_build_time', window.newServerBuildTime);
+  }
+  // Tải lại trang sạch hoàn toàn
   const baseUrl = window.location.href.split('?')[0];
-  window.location.replace(baseUrl + '?reload=' + Date.now());
+  window.location.replace(baseUrl + '?v=' + Date.now());
 }
+
+checkForAppUpdates();
 
   
 

@@ -1200,39 +1200,44 @@
 // TỰ ĐỘNG KIỂM TRA PHIÊN BẢN MỚI TỪ GITHUB
 // TỰ ĐỘNG PHÁT HIỆN SỬA ĐỔI FILE INDEX.HTML VÀ HIỂN THỊ CẬP NHẬT
 // KIỂM TRA BẢN MỚI QUA HEADER ETAG / LAST-MODIFIED CỦA GITHUB PAGES
+  // ĐỊNH DANH BẢN BUILD (Mỗi lần sửa file đẩy lên GitHub thì đổi số này, ví dụ thêm phút/giây)
+const APP_BUILD_ID = "20260911_1800";
+// KIỂM TRA PHIÊN BẢN MỚI
 async function checkIndexFileChanges() {
   try {
+    // Lưu phiên bản hiện tại đang mở vào máy
+    const currentInstalled = localStorage.getItem('spx_installed_build_id');
+    if (!currentInstalled) {
+      localStorage.setItem('spx_installed_build_id', APP_BUILD_ID);
+    }
+
+    // Tải ngầm file index từ server để kiểm tra xem trên GitHub có bản mới hơn không
     const res = await fetch(`index.html?t=${Date.now()}`, {
-      method: 'HEAD',
       cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+      headers: { 'Cache-Control': 'no-cache' }
     });
 
     if (!res.ok) return;
 
-    // Lấy ETag hoặc Last-Modified (GitHub Pages luôn cập nhật 2 header này sau mỗi lần deploy)
-    const remoteTag = res.headers.get('ETag') || res.headers.get('Last-Modified');
-    if (!remoteTag) return;
-
-    const savedTag = localStorage.getItem('spx_app_etag');
-
-    // Lần đầu mở app: Lưu lại định danh hiện tại
-    if (!savedTag) {
-      localStorage.setItem('spx_app_etag', remoteTag);
-      return;
-    }
-
-    // Nếu GitHub Pages đã build bản mới (remoteTag khác với tag đã lưu)
-    if (remoteTag !== savedTag) {
-      window.pendingUpdateTag = remoteTag;
-      const bar = document.getElementById('updateNotificationBar');
-      if (bar) bar.style.display = 'flex';
+    const text = await res.text();
+    // Dùng regex quét đúng chuỗi APP_BUILD_ID trên file ở server
+    const match = text.match(/const\s+APP_BUILD_ID\s*=\s*["']([^"']+)["']/);
+    
+    if (match && match[1]) {
+      const serverBuildId = match[1];
+      // Chỉ khi ID trên server KHÁC với ID của file hiện tại đang chạy thì mới báo cập nhật
+      if (serverBuildId !== APP_BUILD_ID) {
+        window.pendingBuildId = serverBuildId;
+        const bar = document.getElementById('updateNotificationBar');
+        if (bar) bar.style.display = 'flex';
+      }
     }
   } catch (err) {
-    console.warn("Không thể kiểm tra update:", err);
+    console.warn("Bỏ qua kiểm tra update:", err);
   }
 }
 
+// HÀM CHẠY TIẾN TRÌNH CẬP NHẬT
 async function startAppUpdate() {
   const barWrap = document.getElementById('updateProgressWrap');
   const bar = document.getElementById('updateProgressBar');
@@ -1240,61 +1245,57 @@ async function startAppUpdate() {
   const btn = document.getElementById('updateActionBtn');
   const toast = document.getElementById('updateNotificationBar');
 
-  btn.style.display = 'none';
-  barWrap.style.display = 'block';
-  title.innerText = '⏳ Đang tải bản cập nhật mới...';
-  bar.style.width = '30%';
+  if (btn) btn.style.display = 'none';
+  if (barWrap) barWrap.style.display = 'block';
+  if (title) title.innerText = '⏳ Đang tải bản cập nhật mới...';
+  if (bar) bar.style.width = '35%';
 
   try {
-    const freshTimestamp = Date.now();
+    const timestamp = Date.now();
 
-    // Tải trước file HTML mới để ép trình duyệt nhận cache mới
-    const fetchRes = await fetch(`index.html?nocache=${freshTimestamp}`, {
+    // Tải nạp bản mới
+    await fetch(`index.html?v=${timestamp}`, {
       cache: 'reload',
       headers: { 'Cache-Control': 'no-cache' }
     });
 
-    if (!fetchRes.ok) throw new Error('Không thể tải file');
+    if (bar) bar.style.width = '75%';
 
-    bar.style.width = '70%';
-
-    // Xóa CacheStorage nếu có (dành cho PWA / Service Worker)
-    if ('caches' in window) {
-      const keys = await caches.keys();
-      await Promise.all(keys.map(k => caches.delete(k)));
+    // Cập nhật ngay ID mới vào bộ nhớ trước khi load lại để không bao giờ bị hỏi lại
+    if (window.pendingBuildId) {
+      localStorage.setItem('spx_installed_build_id', window.pendingBuildId);
     }
 
-    // Ghi nhận ETag mới để không bị hiện lại nút cập nhật sau khi reload
-    if (window.pendingUpdateTag) {
-      localStorage.setItem('spx_app_etag', window.pendingUpdateTag);
-    }
+    if (bar) bar.style.width = '100%';
+    if (title) title.innerText = '✅ Cập nhật hoàn tất! Đang mở...';
+    if (toast) toast.style.background = '#10b981';
 
-    bar.style.width = '100%';
-    title.innerText = '✅ Đã cập nhật! Đang làm mới...';
-    toast.style.background = '#10b981';
-
+    // Chuyển hướng kèm timestamp để xóa hoàn toàn cache trình duyệt
     setTimeout(() => {
-      // Ép tải lại bỏ qua cache hoàn toàn
-      window.location.href = window.location.pathname + `?v=${freshTimestamp}`;
-    }, 600);
+      const baseUrl = window.location.href.split('?')[0];
+      window.location.replace(baseUrl + '?v=' + timestamp);
+    }, 700);
 
   } catch (err) {
-    console.error('Update thất bại:', err);
-    bar.style.background = '#ef4444';
-    toast.style.background = '#e11d48';
-    title.innerText = '❌ Cập nhật thất bại, thử lại sau!';
-
+    console.error('Cập nhật lỗi:', err);
+    if (toast) toast.style.background = '#e11d48';
+    if (title) title.innerText = '❌ Lỗi tải bản mới. Thử lại sau!';
+    
     setTimeout(() => {
-      barWrap.style.display = 'none';
-      bar.style.width = '0%';
-      bar.style.background = '#fff';
-      toast.style.background = '#0ea5e9';
-      title.innerText = '🚀 Đã có phiên bản mới!';
-      btn.style.display = 'inline-block';
-      btn.innerText = 'Thử lại';
+      if (barWrap) barWrap.style.display = 'none';
+      if (bar) { bar.style.width = '0%'; bar.style.background = '#fff'; }
+      if (toast) toast.style.background = '#0ea5e9';
+      if (title) title.innerText = '🚀 Đã có phiên bản mới!';
+      if (btn) {
+        btn.style.display = 'inline-block';
+        btn.innerText = 'Thử lại';
+      }
     }, 2500);
   }
 }
+
+// Chạy kiểm tra độc lập
+setTimeout(checkIndexFileChanges, 1500);
 
 // Chạy kiểm tra
 checkIndexFileChanges();

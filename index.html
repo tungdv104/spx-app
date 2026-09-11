@@ -2547,6 +2547,12 @@ async function processLocalImageScan(input) {
   }
 
   statusText.innerText = `✓ Đã quét xong! Hãy kiểm tra lại số liệu trước khi Lưu.`;
+  // Cuộn mượt mà xuống nút Lưu (thay 'btnSave' bằng ID thực tế của nút lưu trong code bạn)
+const saveBtn = document.getElementById('saveBtn') || document.querySelector('.btn-save');
+if (saveBtn) {
+  saveBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
   setTimeout(() => { banner.style.display = 'none'; }, 3500);
   input.value = '';
 }

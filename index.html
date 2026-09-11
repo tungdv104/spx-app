@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>SPX Chi Linh 2 - Tính Điểm Sản Lượng</title>
@@ -691,16 +692,14 @@
 <!-- THÔNG BÁO TỰ ĐỘNG CẬP NHẬT KHI CÓ BẢN MỚI TRÊN GITHUB -->
 <div class="update-bar-toast" id="updateNotificationBar">
   <span>🚀 Đã có phiên bản mới cập nhật!</span>
-  <button class="btn" style="background:#fff; color:#0ea5e9; padding:4px 8px; font-size:11px;" onclick="forceAppReload()">Cập nhật ngay</button>
-  
+  <button class="btn" style="background:#fff; color:#0ea5e9; padding:4px 8px; font-size:11px; font-weight:700;" onclick="forceAppReload()">Cập nhật ngay</button>
 </div>
 
 <header class="top-nav">
   <div class="nav-title">
-    <span>📦Chi Linh 2.2.3</span>
+    <span>📦 SPX Chi Linh 2</span>
   </div>
   <div class="header-actions">
-    <button class="btn" onclick="openApiKeyModal()" title="Cấu hình Gemini Vision AI">🤖 Cài AI</button>
     <button class="btn" id="themeToggleBtn" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">
       <span id="themeIcon">🌙</span> <span id="themeText">Tối</span>
     </button>
@@ -1030,17 +1029,17 @@
       <button class="modal-close-btn" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
-      <!-- QUÉT ẢNH THÔNG MINH GEMINI AI -->
+      <!-- QUÉT ẢNH NỘI BỘ SIÊU TỐC KHÔNG DÙNG AI -->
       <div style="margin-bottom: 12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-        <input type="file" id="ocrFileInput" accept="image/*" multiple style="display:none" onchange="handleAiImageScan(this)">
-        <button type="button" class="btn" style="background:#0ea5e9; border-color:#0ea5e9; color:#fff;" onclick="document.getElementById('ocrFileInput').click()">
-          🤖 Quét bằng Gemini Vision AI
+        <input type="file" id="localOcrInput" accept="image/*" multiple style="display:none" onchange="processLocalImageScan(this)">
+        <button type="button" class="btn btn-primary" onclick="document.getElementById('localOcrInput').click()">
+          📷 Quét ảnh tự động (Offline)
         </button>
-        <span style="font-size:11px; color:var(--text-muted);">(Hỗ trợ chọn nhiều ảnh Giao / Lấy / Trả)</span>
+        <span style="font-size:11px; color:var(--text-muted);">(Tự động nhận diện Giao / Lấy / Trả)</span>
       </div>
 
       <div class="scan-status-banner" id="scanStatusBanner">
-        <span id="scanStatusText">Đang đọc dữ liệu qua AI...</span>
+        <span id="scanStatusText">Đang đọc số liệu trên ảnh...</span>
       </div>
 
       <div style="margin-bottom: 12px; max-width: 200px;">
@@ -1106,56 +1105,27 @@
   </div>
 </div>
 
-<!-- MODAL CÀI ĐẶT API KEY GEMINI -->
-<div class="modal-shade" id="apiKeyModal">
-  <div class="modal-box" style="max-width: 440px; margin:auto 12px; border-radius:var(--radius-lg);">
-    <div class="modal-box-head">
-      <h3>🤖 Cài Đặt Gemini Vision AI</h3>
-      <button class="modal-close-btn" onclick="closeApiKeyModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
-        Nhập Google Gemini API Key miễn phí của bạn để kích hoạt khả năng đọc ảnh báo cáo SPX siêu tốc, chuẩn xác 100%. Khóa được lưu trực tiếp trên thiết bị của bạn.
-      </p>
-      <label style="display:block; font-size:11px; font-weight:700; margin-bottom:4px;">Google AI Studio API Key:</label>
-      <input type="text" id="geminiApiKeyInput" class="input-control" placeholder="AIzaSy..." style="font-size:14px;">
-    </div>
-    <div class="modal-box-foot">
-      <button class="btn" onclick="closeApiKeyModal()">Hủy</button>
-      <button class="btn btn-primary" onclick="saveApiKey()">Lưu API Key</button>
-    </div>
-  </div>
-</div>
-
 <script>
-const CURRENT_VERSION = "2.2.1";
-
 // TỰ ĐỘNG KIỂM TRA PHIÊN BẢN MỚI TỪ GITHUB
 async function checkForAppUpdates() {
   try {
-    // Gửi yêu cầu kiểm tra thời gian cập nhật của file index.html trên máy chủ
     const res = await fetch(`index.html?check=${Date.now()}`, {
       method: 'HEAD',
       cache: 'no-store'
     });
 
     if (res.ok) {
-      // Lấy thời điểm commit cuối cùng từ máy chủ GitHub Pages
       const serverLastModified = res.headers.get('Last-Modified') || res.headers.get('ETag');
       const localLastModified = localStorage.getItem('spx_app_build_time');
 
       if (serverLastModified) {
-        // Nếu là lần đầu mở app, lưu lại mốc thời gian
         if (!localLastModified) {
           localStorage.setItem('spx_app_build_time', serverLastModified);
           return;
         }
-
-        // Nếu file trên GitHub có ngày giờ mới hơn trên máy -> Bật thông báo
         if (serverLastModified !== localLastModified) {
           const bar = document.getElementById('updateNotificationBar');
           if (bar) bar.style.display = 'flex';
-          // Lưu tạm mốc mới để khi bấm cập nhật sẽ ghi nhận
           window.newServerBuildTime = serverLastModified;
         }
       }
@@ -1166,18 +1136,14 @@ async function checkForAppUpdates() {
 }
 
 function forceAppReload() {
-  // Ghi nhận máy đã lên bản mới nhất
   if (window.newServerBuildTime) {
     localStorage.setItem('spx_app_build_time', window.newServerBuildTime);
   }
-  // Tải lại trang sạch hoàn toàn
   const baseUrl = window.location.href.split('?')[0];
   window.location.replace(baseUrl + '?v=' + Date.now());
 }
 
 checkForAppUpdates();
-
-  
 
 function initTheme() {
   const savedTheme = localStorage.getItem('spx_theme') || 'light';
@@ -1193,7 +1159,6 @@ function toggleTheme() {
   updateThemeBtnUI(newTheme);
 }
 
-
 function updateThemeBtnUI(theme) {
   const icon = document.getElementById('themeIcon');
   const text = document.getElementById('themeText');
@@ -1208,7 +1173,7 @@ function updateThemeBtnUI(theme) {
 
 initTheme();
 
-// 1. DỮ LIỆU BẢNG 5: ĐƠN GIAO (94 MỐC - VNĐ)[span_2](start_span)[span_2](end_span)[span_3](start_span)[span_3](end_span)
+// 1. DỮ LIỆU BẢNG 5: ĐƠN GIAO (94 MỐC - VNĐ)
 const TABLE_5_DATA = [
   { min: 1, max: 15, range: "1 - 15", pts: [25000, 60000, 60000, 60000, 70000, 90000, 110000, 120000] },
   { min: 15, max: 30, range: "15 - 30", pts: [50000, 110000, 120000, 120000, 150000, 180000, 220000, 240000] },
@@ -1306,7 +1271,7 @@ const TABLE_5_DATA = [
   { min: 12000, max: Infinity, range: "≥ 12,000", pts: [30300000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000, 50000000] }
 ];
 
-// 2. DỮ LIỆU BẢNG 4: ĐƠN LẤY (46 MỐC - VNĐ)[span_4](start_span)[span_4](end_span)[span_5](start_span)[span_5](end_span)
+// 2. DỮ LIỆU BẢNG 4: ĐƠN LẤY (46 MỐC - VNĐ)
 const TABLE_4_DATA = [
   { min: 1, max: 15, range: "1 - 15", pts: [15000, 30000, 30000, 40000, 40000, 50000, 70000, 80000] },
   { min: 15, max: 30, range: "15 - 30", pts: [25000, 60000, 60000, 60000, 70000, 90000, 110000, 120000] },
@@ -1356,7 +1321,7 @@ const TABLE_4_DATA = [
   { min: 75400, max: Infinity, range: "≥ 75,400", pts: [33500000, 60300000, 70350000, 73700000, 93800000, 100000000, 100000000, 100000000] }
 ];
 
-// 3. DỮ LIỆU BẢNG 6: ĐƠN HOÀN (46 MỐC - VNĐ)[span_6](start_span)[span_6](end_span)[span_7](start_span)[span_7](end_span)
+// 3. DỮ LIỆU BẢNG 6: ĐƠN HOÀN (46 MỐC - VNĐ)
 const TABLE_6_DATA = [
   { min: 1, max: 15, range: "1 - 15", pts: [15000, 30000, 30000, 40000, 40000, 50000, 70000, 70000] },
   { min: 15, max: 30, range: "15 - 30", pts: [25000, 60000, 60000, 60000, 70000, 90000, 110000, 120000] },
@@ -1419,7 +1384,6 @@ if (!appData.return) appData.return = [];
 
 let userRank = localStorage.getItem('spx_user_rank') || 'none';
 let monthlyDistanceAllowance = parseInt(localStorage.getItem('spx_distance_allowance'), 10) || 1000000;
-let geminiApiKey = localStorage.getItem('spx_gemini_api_key') || '';
 
 let currentActiveTab = 'overview';
 let currentHistFilter = 'all';
@@ -1518,8 +1482,8 @@ function onDistanceAllowanceChange(val) {
 
 function calculateWorkAndDistance(daysInMonth) {
   const stdWorkingDays = Math.max(1, daysInMonth - 4);
-  const dailyBaseSalary = 5310000 / stdWorkingDays; //[span_8](start_span)[span_8](end_span)
-  const dailyDistanceFee = monthlyDistanceAllowance / stdWorkingDays; //[span_9](start_span)[span_9](end_span)
+  const dailyBaseSalary = 5310000 / stdWorkingDays; //
+  const dailyDistanceFee = monthlyDistanceAllowance / stdWorkingDays; //
 
   const dailyOrdersMap = {};
 
@@ -1895,132 +1859,118 @@ function closeModal() {
   document.getElementById('entryModal').classList.remove('active');
 }
 
-function openApiKeyModal() {
-  document.getElementById('geminiApiKeyInput').value = geminiApiKey;
-  document.getElementById('apiKeyModal').classList.add('active');
-}
-
-function closeApiKeyModal() {
-  document.getElementById('apiKeyModal').classList.remove('active');
-}
-
-function saveApiKey() {
-  geminiApiKey = document.getElementById('geminiApiKeyInput').value.trim();
-  localStorage.setItem('spx_gemini_api_key', geminiApiKey);
-  closeApiKeyModal();
-  alert("✓ Đã lưu Gemini API Key thành công!");
-}
-
 /* =========================================================
-   TÍCH HỢP GEMINI VISION AI ĐỌC ẢNH CHUẨN XÁC 100%
+   BỘ XỬ LÝ QUÉT ẢNH NỘI BỘ (OFFLINE TESSERACT V5)
 ========================================================= */
-function fileToBase64(file) {
+function preprocessImage(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1]);
-    reader.onerror = error => reject(error);
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        ctx.drawImage(img, 0, 0);
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = imgData.data;
+
+        // Tăng độ tương phản: Chữ thành đen tuyền, nền thành trắng tinh
+        for (let i = 0; i < d.length; i += 4) {
+          const v = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+          const color = v > 150 ? 255 : 0;
+          d[i] = color;
+          d[i + 1] = color;
+          d[i + 2] = color;
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+        resolve(canvas);
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
     reader.readAsDataURL(file);
   });
 }
 
-async function handleAiImageScan(input) {
+async function processLocalImageScan(input) {
   const files = input.files;
   if (!files || files.length === 0) return;
-
-  if (!geminiApiKey) {
-    alert("Vui lòng bấm nút '🤖 Cài AI' ở góc trên màn hình để nhập Gemini API Key trước!");
-    openApiKeyModal();
-    return;
-  }
 
   const banner = document.getElementById('scanStatusBanner');
   const statusText = document.getElementById('scanStatusText');
   banner.style.display = 'flex';
 
   for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    statusText.innerText = `🤖 Gemini AI đang phân tích ảnh ${i + 1}/${files.length}... Vui lòng đợi 1-2s.`;
+    statusText.innerText = `⚡ Đang xử lý ảnh ${i + 1}/${files.length}...`;
 
     try {
-      const base64Data = await fileToBase64(file);
-      const promptText = `Bạn là trợ lý bóc tách báo cáo sản lượng tài xế SPX Express. 
-Hãy đọc ảnh chụp màn hình và trả về duy nhất một đối tượng JSON hợp lệ (không kèm markdown, không kèm giải thích) theo mẫu sau:
-{
-  "date": "YYYY-MM-DD", 
-  "type": "delivery" hoặc "pickup" hoặc "return",
-  "weights": {
-    "w0_2": 0,
-    "w2_4": 0,
-    "w4_6": 0,
-    "w6_8": 0,
-    "w8_10": 0,
-    "w10_12": 0,
-    "w12_15": 0,
-    "wover_15": 0
-  }
-}
-Lưu ý:
-- "date": Lấy từ "Chi tiết đơn theo ngày - DD/MM" (ghép năm hiện tại ${new Date().getFullYear()}).
-- "type": Nếu tab là "Đã giao hàng" -> "delivery", nếu là "Đã lấy" -> "pickup", nếu là "Đã trả hàng" -> "return".
-- "weights": Bắt đúng số đơn hàng tương ứng với các dải khối lượng: 0.000 - 2.001 (w0_2), 2.001 - 4.001 (w2_4), 4.001 - 6.001 (w4_6), 6.001 - 8.001 (w6_8), 8.001 - 10.001 (w8_10), 10.001 - 12.001 (w10_12), 12.001 - 15.001 (w12_15), >15.001 (wover_15). Nếu dải nào không xuất hiện thì gán bằng 0.`;
+      const canvas = await preprocessImage(files[i]);
+      let extractedText = '';
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiApiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { text: promptText },
-              { inline_data: { mime_type: file.type || 'image/jpeg', data: base64Data } }
-            ]
-          }],
-          generationConfig: { response_mime_type: "application/json" }
-        })
-      });
-
-      const resJson = await response.json();
-      if (resJson.candidates && resJson.candidates[0].content.parts[0].text) {
-        const textResult = resJson.candidates[0].content.parts[0].text;
-        const parsed = JSON.parse(textResult);
-        applyAiResultToInputs(parsed);
+      if ('TextDetector' in window) {
+        const detector = new window.TextDetector();
+        const detected = await detector.detect(canvas);
+        extractedText = detected.map(b => b.rawValue).join('\n');
+      } else {
+        const result = await Tesseract.recognize(canvas, 'eng', {
+          tessedit_char_whitelist: '0123456789.-/ Đơn hàngGiaolấytrảhoànkg>'
+        });
+        extractedText = result.data.text;
       }
+
+      parseLocalSpxData(extractedText);
     } catch (err) {
-      console.error("Lỗi Gemini AI:", err);
-      alert("AI không thể đọc ảnh này. Hãy kiểm tra kết nối mạng hoặc API Key!");
+      console.error("Lỗi đọc ảnh:", err);
     }
   }
 
-  statusText.innerText = `✓ Gemini AI đã quét xong ${files.length} ảnh! Kiểm tra số liệu trước khi Lưu.`;
-  setTimeout(() => { banner.style.display = 'none'; }, 4000);
+  statusText.innerText = `✓ Đã quét xong! Hãy kiểm tra lại số liệu trước khi Lưu.`;
+  setTimeout(() => { banner.style.display = 'none'; }, 3500);
   input.value = '';
 }
 
-function applyAiResultToInputs(data) {
-  if (data.date) {
-    document.getElementById('inputDate').value = data.date;
+function parseLocalSpxData(raw) {
+  const text = raw.toLowerCase().replace(/,/g, '.');
+
+  const dateMatch = text.match(/(\d{1,2})\/(\d{1,2})/);
+  if (dateMatch) {
+    const curYear = new Date().getFullYear();
+    const d = dateMatch[1].padStart(2, '0');
+    const m = dateMatch[2].padStart(2, '0');
+    document.getElementById('inputDate').value = `${curYear}-${m}-${d}`;
   }
 
   let prefix = 'del_inp';
-  if (data.type === 'pickup') prefix = 'pick_inp';
-  if (data.type === 'return') prefix = 'ret_inp';
+  if (text.includes('lấy') || text.includes('lay')) prefix = 'pick_inp';
+  else if (text.includes('trả') || text.includes('tra') || text.includes('hoàn')) prefix = 'ret_inp';
 
-  if (data.weights) {
-    const keyMap = {
-      w0_2: '0_2',
-      w2_4: '2_4',
-      w4_6: '4_6',
-      w6_8: '6_8',
-      w8_10: '8_10',
-      w10_12: '10_12',
-      w12_15: '12_15',
-      wover_15: 'over_15'
-    };
-    Object.keys(keyMap).forEach(k => {
-      const val = data.weights[k] || 0;
-      const el = document.getElementById(`${prefix}_${keyMap[k]}`);
-      if (el) el.value = val;
-    });
-  }
+  const rules = [
+    { id: '0_2', re: /0\.000.*?2\.001[\s\S]{0,40}?(\d+)/i },
+    { id: '2_4', re: /2\.001.*?4\.001[\s\S]{0,40}?(\d+)/i },
+    { id: '4_6', re: /4\.001.*?6\.001[\s\S]{0,40}?(\d+)/i },
+    { id: '6_8', re: /6\.001.*?8\.001[\s\S]{0,40}?(\d+)/i },
+    { id: '8_10', re: /8\.001.*?10\.001[\s\S]{0,40}?(\d+)/i },
+    { id: '10_12', re: /10\.001.*?12\.001[\s\S]{0,40}?(\d+)/i },
+    { id: '12_15', re: /12\.001.*?15\.001[\s\S]{0,40}?(\d+)/i },
+    { id: 'over_15', re: />\s*15\.001[\s\S]{0,40}?(\d+)/i }
+  ];
+
+  rules.forEach(rule => {
+    let m = text.match(rule.re);
+    if (!m) {
+      const reversePattern = new RegExp(`(\\d+)[^\\d]{1,20}${rule.id.replace('_', '.*?')}`, 'i');
+      m = text.match(reversePattern);
+    }
+    if (m && m[1]) {
+      const el = document.getElementById(`${prefix}_${rule.id}`);
+      if (el) el.value = parseInt(m[1], 10);
+    }
+  });
 }
 
 function saveRecord() {

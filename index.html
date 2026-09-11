@@ -1256,35 +1256,44 @@
 // ==========================================
 // TỰ ĐỘNG PHÁT HIỆN SỬA FILE INDEX TRÊN GITHUB
 // ==========================================
+// ==========================================
+// TỰ ĐỘNG PHÁT HIỆN SỬA ĐỔI FILE INDEX.HTML
+// ==========================================
+function createQuickHash(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return String(hash);
+}
+
 async function checkForAppUpdates() {
   try {
-    // Gọi API của GitHub để lấy mã hash (SHA) của lần Commit mới nhất trên file index.html
-    const apiUrl = `https://api.github.com/repos/tungdv104/spx-app/commits?path=index.html&page=1&per_page=1&t=${Date.now()}`;
-    
-    const res = await fetch(apiUrl, {
+    // Tải ngầm file index.html mới nhất từ máy chủ, chặn hoàn toàn cache của WebView
+    const res = await fetch(`index.html?t=${Date.now()}`, {
       cache: 'no-store',
-      headers: { 'Accept': 'application/vnd.github.v3+json' }
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
     });
 
     if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        const latestCommitSha = data[0].sha; // Mã định danh của lần commit mới nhất
-        const savedCommitSha = localStorage.getItem('spx_last_commit_sha');
+      const serverHtml = await res.text();
+      if (!serverHtml || serverHtml.length < 500) return;
 
-        // Lần đầu tiên mở app: Lưu lại mã commit hiện tại làm mốc
-        if (!savedCommitSha) {
-          localStorage.setItem('spx_last_commit_sha', latestCommitSha);
-          return;
-        }
+      const serverHash = createQuickHash(serverHtml);
+      const localHash = localStorage.getItem('spx_current_file_hash');
 
-        // Nếu mã commit trên GitHub KHÁC mã máy đang giữ -> Có code mới!
-        if (latestCommitSha !== savedCommitSha) {
-          const bar = document.getElementById('updateNotificationBar');
-          if (bar) bar.style.display = 'flex';
-          // Lưu tạm mã commit mới vào bộ nhớ tạm
-          window.pendingCommitSha = latestCommitSha;
-        }
+      // Nếu lần đầu mở app, lưu mã hash hiện tại
+      if (!localHash) {
+        localStorage.setItem('spx_current_file_hash', serverHash);
+        return;
+      }
+
+      // Nếu nội dung trên GitHub khác với bản đang chạy trên máy -> BẬT CẬP NHẬT
+      if (serverHash !== localHash) {
+        const bar = document.getElementById('updateNotificationBar');
+        if (bar) bar.style.display = 'flex';
+        window.pendingFileHash = serverHash;
       }
     }
   } catch (err) {
@@ -1292,7 +1301,7 @@ async function checkForAppUpdates() {
   }
 }
 
-// Kiểm tra ngay khi mở app
+// Kiểm tra khi vừa mở app
 checkForAppUpdates();
 
 // Kiểm tra lại khi chuyển từ ứng dụng khác quay lại app
@@ -1301,6 +1310,31 @@ document.addEventListener('visibilitychange', () => {
     checkForAppUpdates();
   }
 });
+
+function forceAppReload() {
+  const overlay = document.getElementById('updateProgressOverlay');
+  const bar = document.getElementById('updateNotificationBar');
+  if (bar) bar.style.display = 'none';
+  if (overlay) overlay.style.display = 'flex';
+
+  setUpdateProgress(30, 'Đang kéo dữ liệu mới...');
+
+  if (window.pendingFileHash) {
+    localStorage.setItem('spx_current_file_hash', window.pendingFileHash);
+  }
+  localStorage.setItem('spx_update_pending', '1');
+
+  setTimeout(() => {
+    setUpdateProgress(70, 'Đang nạp phiên bản mới...');
+    setTimeout(() => {
+      setUpdateProgress(100, 'Hoàn tất! Đang khởi động lại...');
+      setTimeout(() => {
+        const baseUrl = window.location.href.split('?')[0];
+        window.location.replace(baseUrl + '?v=' + Date.now());
+      }, 350);
+    }, 400);
+  }, 400);
+}
 
 function showUpdateResult(message, success) {
   const toast = document.getElementById('updateResultToast');
@@ -1318,33 +1352,6 @@ function setUpdateProgress(percent, status) {
   if (fill) fill.style.width = Math.max(0, Math.min(100, percent)) + '%';
   if (pct) pct.textContent = Math.round(percent) + '%';
   if (st) st.textContent = status;
-}
-
-function forceAppReload() {
-  const overlay = document.getElementById('updateProgressOverlay');
-  const bar = document.getElementById('updateNotificationBar');
-  if (bar) bar.style.display = 'none';
-  if (overlay) overlay.style.display = 'flex';
-
-  setUpdateProgress(25, 'Đang kéo mã nguồn mới từ máy chủ...');
-
-  // Lưu mã commit mới vào máy để sau khi reload không bị hiện nút lại
-  if (window.pendingCommitSha) {
-    localStorage.setItem('spx_last_commit_sha', window.pendingCommitSha);
-  }
-  localStorage.setItem('spx_update_pending', '1');
-
-  setTimeout(() => {
-    setUpdateProgress(70, 'Đang làm mới dữ liệu...');
-    setTimeout(() => {
-      setUpdateProgress(100, 'Hoàn tất! Đang khởi động lại...');
-      setTimeout(() => {
-        // Buộc trình duyệt đổi URL có timestamp phá sạch 100% cache cũ
-        const baseUrl = window.location.href.split('?')[0];
-        window.location.replace(baseUrl + '?v=' + Date.now());
-      }, 350);
-    }, 400);
-  }, 400);
 }
 
 // Thông báo sau khi trang tải lại thành công

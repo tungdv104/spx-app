@@ -685,6 +685,40 @@
     .modal-shade { padding: 16px; align-items: center; }
     .modal-box { border-radius: var(--radius-lg); border-bottom: 1px solid var(--glass-border); }
   }
+
+  /* ===== NEW OVERVIEW ENHANCEMENTS ===== */
+  .quick-period-card { margin-top: 12px; }
+  .period-switch { display:flex; gap:6px; margin-bottom:10px; }
+  .period-btn { flex:1; padding:7px 8px; border:1px solid var(--glass-border-subtle); border-radius:8px; background:var(--glass-subtle); color:var(--text-secondary); font-size:11px; font-weight:700; cursor:pointer; }
+  .period-btn.active { background:var(--glass-surface); color:var(--spx-orange); border-color:var(--spx-orange); }
+  .quick-stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+  .quick-stat { padding:10px 8px; border-radius:10px; background:var(--glass-subtle); border:1px solid var(--glass-border-subtle); text-align:center; }
+  .quick-stat-icon { font-size:16px; }
+  .quick-stat-label { font-size:10px; color:var(--text-muted); font-weight:700; margin-top:2px; }
+  .quick-stat-value { font-size:15px; font-weight:900; color:var(--text-primary); margin-top:2px; }
+  .quick-stat-sub { font-size:9px; color:var(--text-muted); margin-top:1px; }
+  .workday-card { margin-top:12px; }
+  .workday-top { display:flex; justify-content:space-between; align-items:flex-end; gap:8px; }
+  .workday-big { font-size:22px; font-weight:900; color:var(--text-primary); }
+  .workday-big small { font-size:11px; font-weight:700; color:var(--text-muted); }
+  .workday-remain { font-size:11px; font-weight:700; color:var(--text-secondary); text-align:right; }
+  .progress-track { height:8px; margin:7px 0 8px; border-radius:8px; overflow:hidden; background:rgba(148,163,184,.2); }
+  .progress-fill { height:100%; width:0; border-radius:8px; background:var(--spx-orange); transition:width .3s ease; }
+  .workday-detail { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+  .workday-chip { padding:7px 6px; border-radius:8px; background:var(--glass-subtle); font-size:10px; color:var(--text-secondary); text-align:center; }
+  .workday-chip b { display:block; font-size:12px; color:var(--text-primary); margin-bottom:1px; }
+  .chart-card { margin-top:12px; }
+  .chart-wrap { position:relative; height:190px; width:100%; }
+  .chart-wrap canvas { width:100%; height:100%; display:block; }
+  .chart-legend { display:flex; justify-content:space-between; align-items:center; margin-top:6px; font-size:10px; color:var(--text-muted); }
+  .chart-summary { font-size:11px; color:var(--text-secondary); font-weight:600; }
+  .chart-empty { display:flex; align-items:center; justify-content:center; height:100%; color:var(--text-muted); font-size:12px; text-align:center; }
+  @media (max-width:480px) {
+    .quick-stats-grid { gap:5px; }
+    .quick-stat { padding:9px 5px; }
+    .chart-wrap { height:175px; }
+  }
+
 </style>
 </head>
 <body>
@@ -799,6 +833,53 @@
               </div>
             </div>
           </div>
+
+
+          <!-- HÔM NAY / THÁNG NÀY -->
+          <section class="card quick-period-card">
+            <div class="card-head" style="margin-bottom:8px;">
+              <div>
+                <h2>📊 Sản Lượng</h2>
+                <p id="periodTitle">Hôm nay · 11/09/2026</p>
+              </div>
+              <span id="periodTotalOrders" style="font-size:11px;font-weight:800;color:var(--spx-orange);">0 đơn</span>
+            </div>
+            <div class="period-switch">
+              <button class="period-btn active" id="periodTodayBtn" onclick="setPeriodView('today', this)">Hôm nay</button>
+              <button class="period-btn" id="periodMonthBtn" onclick="setPeriodView('month', this)">Tháng này</button>
+            </div>
+            <div class="quick-stats-grid">
+              <div class="quick-stat"><div class="quick-stat-icon">🚚</div><div class="quick-stat-label">Giao</div><div class="quick-stat-value" id="periodDelOrders">0</div><div class="quick-stat-sub" id="periodDelPoints">0 VNĐ</div></div>
+              <div class="quick-stat"><div class="quick-stat-icon">📥</div><div class="quick-stat-label">Lấy</div><div class="quick-stat-value" id="periodPickOrders">0</div><div class="quick-stat-sub" id="periodPickPoints">0 VNĐ</div></div>
+              <div class="quick-stat"><div class="quick-stat-icon">📦</div><div class="quick-stat-label">Hoàn</div><div class="quick-stat-value" id="periodRetOrders">0</div><div class="quick-stat-sub" id="periodRetPoints">0 VNĐ</div></div>
+            </div>
+          </section>
+
+          <!-- NGÀY CÔNG -->
+          <section class="card workday-card">
+            <div class="card-head" style="margin-bottom:7px;">
+              <div><h2>📅 Ngày Công</h2><p>Quy đổi theo sản lượng trong ngày</p></div>
+            </div>
+            <div class="workday-top">
+              <div class="workday-big"><span id="workdayEffective">0</span> <small>/ <span id="workdayStandard">26</span> ngày</small></div>
+              <div class="workday-remain" id="workdayRemain">Còn 26 ngày</div>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="workdayProgress"></div></div>
+            <div class="workday-detail">
+              <div class="workday-chip"><b id="workdayFull">0</b>Ngày chuẩn</div>
+              <div class="workday-chip"><b id="workdayHalf">0</b>Ngày nửa công</div>
+              <div class="workday-chip"><b id="workdayActiveDays">0</b>Ngày có sản lượng</div>
+            </div>
+          </section>
+
+          <!-- BIỂU ĐỒ 7 NGÀY -->
+          <section class="card chart-card">
+            <div class="card-head" style="margin-bottom:5px;">
+              <div><h2>📈 Sản Lượng 7 Ngày Gần Nhất</h2><p>Giao · Lấy · Hoàn theo từng ngày</p></div>
+            </div>
+            <div class="chart-wrap" id="sevenDayChartWrap"><canvas id="sevenDayChart"></canvas></div>
+            <div class="chart-legend"><span id="sevenDaySummary">Chưa có dữ liệu</span><span>đơn/ngày</span></div>
+          </section>
 
           <div class="stat-grid-reorganized">
             <div class="stat-card-item type-del">
@@ -1388,6 +1469,7 @@ let monthlyDistanceAllowance = parseInt(localStorage.getItem('spx_distance_allow
 let currentActiveTab = 'overview';
 let currentHistFilter = 'all';
 let currentOverviewFilter = 'all';
+let currentPeriodView = 'today';
 
 function formatPts(n) {
   return new Intl.NumberFormat('vi-VN').format(Math.round(n)) + ' VNĐ';
@@ -1487,9 +1569,13 @@ function calculateWorkAndDistance(daysInMonth) {
 
   const dailyOrdersMap = {};
 
+  const now = new Date();
+  const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-`;
+
   const addOrdersToDate = (records, factor) => {
     (records || []).forEach(r => {
       const d = r.date || 'unknown';
+      if (!String(d).startsWith(monthPrefix)) return;
       if (!dailyOrdersMap[d]) dailyOrdersMap[d] = 0;
       let count = 0;
       WEIGHT_KEYS.forEach(k => {
@@ -1525,6 +1611,189 @@ function calculateWorkAndDistance(daysInMonth) {
     totalEffectiveWorkDays,
     totalCombined: totalBaseSalary + totalDistance
   };
+}
+
+
+function setPeriodView(view, el) {
+  currentPeriodView = view;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  updatePeriodStats();
+}
+
+function getRecordOrderCount(record) {
+  return WEIGHT_KEYS.reduce((sum, k) => sum + (parseInt(record.weights[k], 10) || 0), 0);
+}
+
+function getRecordPoints(record, tableData) {
+  const total = getRecordOrderCount(record);
+  if (!total) return 0;
+  let pts = 0;
+  WEIGHT_KEYS.forEach((k, idx) => {
+    const count = parseInt(record.weights[k], 10) || 0;
+    if (count <= 0) return;
+    pts += lookupTier(count, idx, tableData).matched.pt;
+  });
+  return pts;
+}
+
+function getDateRecords(type, isoDate) {
+  return (appData[type] || []).filter(r => r.date === isoDate);
+}
+
+function getMonthRecords(type, year, month) {
+  const prefix = `${year}-${String(month + 1).padStart(2, '0')}-`;
+  return (appData[type] || []).filter(r => String(r.date || '').startsWith(prefix));
+}
+
+function aggregatePeriodRecords(records, tableData) {
+  const agg = [0,0,0,0,0,0,0,0];
+  records.forEach(r => {
+    WEIGHT_KEYS.forEach((k, idx) => { agg[idx] += parseInt(r.weights[k], 10) || 0; });
+  });
+  const orders = agg.reduce((sum, n) => sum + n, 0);
+  let points = 0;
+  agg.forEach((count, idx) => {
+    if (count > 0) points += lookupTier(count, idx, tableData).matched.pt;
+  });
+  return { orders, points };
+}
+
+function updatePeriodStats() {
+  const now = new Date();
+  const today = getTodayIso();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const source = currentPeriodView === 'today'
+    ? {
+        del: getDateRecords('delivery', today),
+        pick: getDateRecords('pickup', today),
+        ret: getDateRecords('return', today)
+      }
+    : {
+        del: getMonthRecords('delivery', year, month),
+        pick: getMonthRecords('pickup', year, month),
+        ret: getMonthRecords('return', year, month)
+      };
+
+  const d = aggregatePeriodRecords(source.del, TABLE_5_DATA);
+  const p = aggregatePeriodRecords(source.pick, TABLE_4_DATA);
+  const r = aggregatePeriodRecords(source.ret, TABLE_6_DATA);
+  const total = d.orders + p.orders + r.orders;
+  const title = currentPeriodView === 'today' ? `Hôm nay · ${formatDateDisplay(today)}` : `Tháng ${String(month + 1).padStart(2,'0')}/${year}`;
+
+  document.getElementById('periodTitle').innerText = title;
+  document.getElementById('periodTotalOrders').innerText = `${total.toLocaleString('vi-VN')} đơn`;
+  document.getElementById('periodDelOrders').innerText = d.orders.toLocaleString('vi-VN');
+  document.getElementById('periodPickOrders').innerText = p.orders.toLocaleString('vi-VN');
+  document.getElementById('periodRetOrders').innerText = r.orders.toLocaleString('vi-VN');
+  document.getElementById('periodDelPoints').innerText = formatPts(d.points);
+  document.getElementById('periodPickPoints').innerText = formatPts(p.points);
+  document.getElementById('periodRetPoints').innerText = formatPts(r.points);
+}
+
+function updateWorkdayCard(workStats, daysInMonth) {
+  const standard = Math.max(1, daysInMonth - 4);
+  const effective = workStats.totalEffectiveWorkDays;
+  const remaining = Math.max(0, standard - effective);
+  const progress = Math.min(100, (effective / standard) * 100);
+  document.getElementById('workdayEffective').innerText = effective % 1 === 0 ? effective : effective.toFixed(1);
+  document.getElementById('workdayStandard').innerText = standard;
+  document.getElementById('workdayRemain').innerText = remaining > 0 ? `Còn ${remaining % 1 === 0 ? remaining : remaining.toFixed(1)} ngày` : 'Đã đủ ngày tiêu chuẩn';
+  document.getElementById('workdayProgress').style.width = `${progress}%`;
+  document.getElementById('workdayFull').innerText = workStats.fullWorkDays;
+  document.getElementById('workdayHalf').innerText = workStats.halfWorkDays;
+  const activeDates = new Set();
+  const now = new Date();
+  const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-`;
+  ['delivery','pickup','return'].forEach(type => (appData[type] || []).forEach(r => {
+    if (r.date && String(r.date).startsWith(monthPrefix)) activeDates.add(r.date);
+  }));
+  document.getElementById('workdayActiveDays').innerText = activeDates.size;
+}
+
+function getLastSevenDates() {
+  const dates = [];
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  for (let i = 6; i >= 0; i--) {
+    const x = new Date(d);
+    x.setDate(d.getDate() - i);
+    dates.push(`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`);
+  }
+  return dates;
+}
+
+function drawSevenDayChart() {
+  const canvas = document.getElementById('sevenDayChart');
+  const wrap = document.getElementById('sevenDayChartWrap');
+  if (!canvas || !wrap) return;
+  const rect = wrap.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const w = Math.max(280, rect.width);
+  const h = Math.max(150, rect.height);
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  canvas.style.width = `${w}px`;
+  canvas.style.height = `${h}px`;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,w,h);
+
+  const dates = getLastSevenDates();
+  const series = {
+    del: dates.map(date => getRecordOrderCountByDate('delivery', date)),
+    pick: dates.map(date => getRecordOrderCountByDate('pickup', date)),
+    ret: dates.map(date => getRecordOrderCountByDate('return', date))
+  };
+  const all = [...series.del, ...series.pick, ...series.ret];
+  const maxVal = Math.max(1, ...all);
+  const pad = {left:34, right:10, top:12, bottom:28};
+  const cw = w - pad.left - pad.right;
+  const ch = h - pad.top - pad.bottom;
+  const x = i => pad.left + (cw * i / 6);
+  const y = v => pad.top + ch - (v / maxVal) * ch;
+
+  ctx.font = '10px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim();
+  for (let g=0; g<=4; g++) {
+    const val = Math.round(maxVal * g / 4);
+    const yy = y(val);
+    ctx.beginPath(); ctx.moveTo(pad.left,yy); ctx.lineTo(w-pad.right,yy);
+    ctx.strokeStyle = 'rgba(148,163,184,.22)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillText(val.toLocaleString('vi-VN'), pad.left-5, yy);
+  }
+
+  const drawLine = (values, dash, label, offset) => {
+    ctx.beginPath();
+    values.forEach((v,i) => i ? ctx.lineTo(x(i),y(v)) : ctx.moveTo(x(i),y(v)));
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue(dash).trim() || '#ff5722';
+    ctx.lineWidth = 2.5; ctx.lineJoin='round'; ctx.lineCap='round'; ctx.stroke();
+    values.forEach((v,i) => {
+      ctx.beginPath(); ctx.arc(x(i),y(v),3,0,Math.PI*2); ctx.fillStyle=ctx.strokeStyle; ctx.fill();
+    });
+  };
+  // Use CSS theme colors already defined by the app.
+  drawLine(series.del, '--glass-violet-text', 'Giao', 0);
+  drawLine(series.pick, '--glass-sky-text', 'Lấy', 0);
+  drawLine(series.ret, '--glass-amber-text', 'Hoàn', 0);
+
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim();
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  dates.forEach((date,i) => {
+    const label = date.slice(8,10) + '/' + date.slice(5,7);
+    ctx.fillText(label, x(i), h-pad.bottom+8);
+  });
+
+  const total7 = all.reduce((a,b)=>a+b,0);
+  const avg = Math.round(total7 / 7);
+  document.getElementById('sevenDaySummary').innerText = `7 ngày: ${total7.toLocaleString('vi-VN')} đơn · TB ${avg.toLocaleString('vi-VN')} đơn/ngày`;
+}
+
+function getRecordOrderCountByDate(type, date) {
+  return (appData[type] || []).filter(r => r.date === date).reduce((sum,r) => sum + getRecordOrderCount(r), 0);
 }
 
 function updateAllViews() {
@@ -1725,6 +1994,10 @@ function updateAllViews() {
 
   const workStats = calculateWorkAndDistance(daysInCurrentMonth);
   const distanceAndWorkPoints = workStats.totalCombined;
+
+  updatePeriodStats();
+  updateWorkdayCard(workStats, daysInCurrentMonth);
+  drawSevenDayChart();
 
   let rankRate = 0;
   if (userRank === 'dong') rankRate = 0.10;
@@ -2074,6 +2347,8 @@ function clearAllHistory() {
     updateAllViews();
   }
 }
+
+window.addEventListener('resize', () => { if (currentActiveTab === 'overview') drawSevenDayChart(); });
 
 // Khởi chạy
 updateAllViews();

@@ -728,12 +728,12 @@
 
 <!-- THÔNG BÁO TỰ ĐỘNG CẬP NHẬT KHI CÓ BẢN MỚI TRÊN GITHUB -->
 <!-- THANH THÔNG BÁO TIẾN TRÌNH CẬP NHẬT -->
+<!-- THANH THÔNG BÁO TIẾN TRÌNH CẬP NHẬT -->
 <div class="update-bar-toast" id="updateNotificationBar" style="flex-direction: column; gap: 8px;">
   <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-    <span id="updateToastTitle">🚀 Đã có phiên bản mới cập nhật!</span>
-    <button class="btn" id="updateActionBtn" style="background:#fff; color:#0ea5e9; padding:4px 8px; font-size:11px; font-weight:700;" onclick="startAppUpdate()">Cập nhật ngay</button>
+    <span id="updateToastTitle">🚀 Đã có phiên bản mới!</span>
+    <button type="button" class="btn" id="updateActionBtn" style="background:#fff; color:#0ea5e9; padding:4px 8px; font-size:11px; font-weight:700;" onclick="startAppUpdate()">Cập nhật ngay</button>
   </div>
-  <!-- Thanh progress bar ẩn mặc định -->
   <div id="updateProgressWrap" style="display:none; width: 100%; height: 5px; background: rgba(255,255,255,0.3); border-radius: 4px; overflow: hidden;">
     <div id="updateProgressBar" style="width: 0%; height: 100%; background: #fff; transition: width 0.3s ease;"></div>
   </div>
@@ -1199,41 +1199,37 @@
 <script>
 // TỰ ĐỘNG KIỂM TRA PHIÊN BẢN MỚI TỪ GITHUB
 // TỰ ĐỘNG PHÁT HIỆN SỬA ĐỔI FILE INDEX.HTML VÀ HIỂN THỊ CẬP NHẬT
-async function hashString(str) {
-  const enc = new TextEncoder().encode(str);
-  const buf = await crypto.subtle.digest('SHA-1', enc);
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
+// KIỂM TRA BẢN MỚI QUA HEADER ETAG / LAST-MODIFIED CỦA GITHUB PAGES
 async function checkIndexFileChanges() {
   try {
-    // 1. Tải file index.html mới nhất trực tiếp từ server, vượt qua cache trình duyệt
     const res = await fetch(`index.html?t=${Date.now()}`, {
+      method: 'HEAD',
       cache: 'no-store',
       headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
     });
 
     if (!res.ok) return;
 
-    const remoteHtml = await res.text();
-    const remoteHash = await hashString(remoteHtml.trim());
+    // Lấy ETag hoặc Last-Modified (GitHub Pages luôn cập nhật 2 header này sau mỗi lần deploy)
+    const remoteTag = res.headers.get('ETag') || res.headers.get('Last-Modified');
+    if (!remoteTag) return;
 
-    // 2. Lấy mã hash của trang đang chạy hiện tại
-    let currentHash = sessionStorage.getItem('spx_current_page_hash');
-    if (!currentHash) {
-      const currentDocHtml = document.documentElement.outerHTML;
-      currentHash = await hashString(currentDocHtml.trim());
-      sessionStorage.setItem('spx_current_page_hash', currentHash);
+    const savedTag = localStorage.getItem('spx_app_etag');
+
+    // Lần đầu mở app: Lưu lại định danh hiện tại
+    if (!savedTag) {
+      localStorage.setItem('spx_app_etag', remoteTag);
+      return;
     }
 
-    // 3. Nếu nội dung trên server khác với trang đang mở -> Hiện thanh cập nhật
-    if (remoteHash && currentHash && remoteHash !== currentHash) {
+    // Nếu GitHub Pages đã build bản mới (remoteTag khác với tag đã lưu)
+    if (remoteTag !== savedTag) {
+      window.pendingUpdateTag = remoteTag;
       const bar = document.getElementById('updateNotificationBar');
       if (bar) bar.style.display = 'flex';
-      window.newServerHash = remoteHash;
     }
   } catch (err) {
-    console.warn("Không thể kiểm tra cập nhật:", err);
+    console.warn("Không thể kiểm tra update:", err);
   }
 }
 
@@ -1244,60 +1240,74 @@ async function startAppUpdate() {
   const btn = document.getElementById('updateActionBtn');
   const toast = document.getElementById('updateNotificationBar');
 
-  // Đổi trạng thái hiển thị
   btn.style.display = 'none';
   barWrap.style.display = 'block';
   title.innerText = '⏳ Đang tải bản cập nhật mới...';
-  bar.style.width = '35%';
+  bar.style.width = '30%';
 
   try {
-    const timestamp = Date.now();
-    bar.style.width = '65%';
+    const freshTimestamp = Date.now();
 
-    // Thử fetch nạp dữ liệu để xác minh file tải về hợp lệ
-    const testFetch = await fetch(`index.html?v=${timestamp}`, {
-      cache: 'no-store',
+    // Tải trước file HTML mới để ép trình duyệt nhận cache mới
+    const fetchRes = await fetch(`index.html?nocache=${freshTimestamp}`, {
+      cache: 'reload',
       headers: { 'Cache-Control': 'no-cache' }
     });
 
-    if (!testFetch.ok) throw new Error('Không thể tải file cập nhật');
+    if (!fetchRes.ok) throw new Error('Không thể tải file');
 
-    bar.style.width = '100%';
-    title.innerText = '✅ Cập nhật thành công! Đang khởi động lại...';
-    toast.style.background = '#10b981'; // Chuyển màu xanh lá thành công
+    bar.style.width = '70%';
 
-    if (window.newServerHash) {
-      sessionStorage.setItem('spx_current_page_hash', window.newServerHash);
+    // Xóa CacheStorage nếu có (dành cho PWA / Service Worker)
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
     }
 
-    // Đợi 0.8 giây để người dùng thấy thông báo thành công rồi làm mới trang
+    // Ghi nhận ETag mới để không bị hiện lại nút cập nhật sau khi reload
+    if (window.pendingUpdateTag) {
+      localStorage.setItem('spx_app_etag', window.pendingUpdateTag);
+    }
+
+    bar.style.width = '100%';
+    title.innerText = '✅ Đã cập nhật! Đang làm mới...';
+    toast.style.background = '#10b981';
+
     setTimeout(() => {
-      const baseUrl = window.location.href.split('?')[0];
-      window.location.replace(baseUrl + '?v=' + timestamp);
-    }, 800);
+      // Ép tải lại bỏ qua cache hoàn toàn
+      window.location.href = window.location.pathname + `?v=${freshTimestamp}`;
+    }, 600);
 
   } catch (err) {
-    console.error('Cập nhật thất bại:', err);
-    bar.style.width = '100%';
+    console.error('Update thất bại:', err);
     bar.style.background = '#ef4444';
-    toast.style.background = '#e11d48'; // Chuyển màu đỏ thất bại
-    title.innerText = '❌ Cập nhật thất bại. Vui lòng thử lại!';
+    toast.style.background = '#e11d48';
+    title.innerText = '❌ Cập nhật thất bại, thử lại sau!';
 
-    // Khôi phục nút bấm để người dùng bấm thử lại
     setTimeout(() => {
       barWrap.style.display = 'none';
       bar.style.width = '0%';
       bar.style.background = '#fff';
       toast.style.background = '#0ea5e9';
-      title.innerText = '🚀 Đã có phiên bản mới cập nhật!';
+      title.innerText = '🚀 Đã có phiên bản mới!';
       btn.style.display = 'inline-block';
       btn.innerText = 'Thử lại';
     }, 2500);
   }
 }
 
-// Chạy kiểm tra ngay khi mở app
+// Chạy kiểm tra
 checkIndexFileChanges();
+setInterval(checkIndexFileChanges, 30000);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') checkIndexFileChanges();
+});
+
+
+
+
+
+
 
 // Tự động kiểm tra định kỳ mỗi 30 giây hoặc khi người dùng quay lại app từ ứng dụng khác
 setInterval(checkIndexFileChanges, 30000);

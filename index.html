@@ -788,13 +788,13 @@
                 </select>
               </div>
 
-              <div class="hero-rank-row" style="border-top:1px dashed var(--glass-border-subtle); padding-top:6px;">
-                <label for="distanceAllowanceInput">📍 Phụ cấp khoảng cách tháng:</label>
-                <div style="display:flex; align-items:center; gap:4px;">
-                  <input type="number" id="distanceAllowanceInput" class="input-control" style="width:120px; padding:4px 8px; font-size:13px; font-weight:700; text-align:right;" value="1000000" oninput="onDistanceAllowanceChange(this.value)">
-                  <span style="font-size:11px; font-weight:700; color:var(--text-muted);">VNĐ</span>
-                </div>
-              </div>
+              <div class="hero-rank-row" style="border-top:1px dashed var(--glass-border-subtle); padding-top:6px; flex-wrap: nowrap; gap: 6px;">
+  <label for="distanceAllowanceInput" style="font-size: 11px; flex: 1; min-width: 0; white-space: normal;">📍 Phụ cấp khoảng cách:</label>
+  <div style="display:flex; align-items:center; gap:3px; flex-shrink: 0;">
+    <input type="number" id="distanceAllowanceInput" class="input-control" style="width:90px; padding:4px 6px; font-size:12px; font-weight:700; text-align:right;" value="1000000" oninput="onDistanceAllowanceChange(this.value)">
+    <span style="font-size:10px; font-weight:700; color:var(--text-muted);">VNĐ</span>
+  </div>
+</div>
             </div>
 
             <!-- BẢNG CHI TIẾT CỘNG ĐIỂM -->
@@ -1191,41 +1191,62 @@
 
 <script>
 // TỰ ĐỘNG KIỂM TRA PHIÊN BẢN MỚI TỪ GITHUB
-async function checkForAppUpdates() {
+// TỰ ĐỘNG PHÁT HIỆN SỬA ĐỔI FILE INDEX.HTML VÀ HIỂN THỊ CẬP NHẬT
+async function hashString(str) {
+  const enc = new TextEncoder().encode(str);
+  const buf = await crypto.subtle.digest('SHA-1', enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function checkIndexFileChanges() {
   try {
-    const res = await fetch(`index.html?check=${Date.now()}`, {
-      method: 'HEAD',
-      cache: 'no-store'
+    // 1. Tải file index.html mới nhất trực tiếp từ server, vượt qua cache trình duyệt
+    const res = await fetch(`index.html?t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
     });
 
-    if (res.ok) {
-      const serverLastModified = res.headers.get('Last-Modified') || res.headers.get('ETag');
-      const localLastModified = localStorage.getItem('spx_app_build_time');
+    if (!res.ok) return;
 
-      if (serverLastModified) {
-        if (!localLastModified) {
-          localStorage.setItem('spx_app_build_time', serverLastModified);
-          return;
-        }
-        if (serverLastModified !== localLastModified) {
-          const bar = document.getElementById('updateNotificationBar');
-          if (bar) bar.style.display = 'flex';
-          window.newServerBuildTime = serverLastModified;
-        }
-      }
+    const remoteHtml = await res.text();
+    const remoteHash = await hashString(remoteHtml.trim());
+
+    // 2. Lấy mã hash của trang đang chạy hiện tại
+    let currentHash = sessionStorage.getItem('spx_current_page_hash');
+    if (!currentHash) {
+      const currentDocHtml = document.documentElement.outerHTML;
+      currentHash = await hashString(currentDocHtml.trim());
+      sessionStorage.setItem('spx_current_page_hash', currentHash);
+    }
+
+    // 3. Nếu nội dung trên server khác với trang đang mở -> Hiện thanh cập nhật
+    if (remoteHash && currentHash && remoteHash !== currentHash) {
+      const bar = document.getElementById('updateNotificationBar');
+      if (bar) bar.style.display = 'flex';
+      window.newServerHash = remoteHash;
     }
   } catch (err) {
-    console.log("Bỏ qua kiểm tra update:", err);
+    console.warn("Không thể kiểm tra cập nhật:", err);
   }
 }
 
 function forceAppReload() {
-  if (window.newServerBuildTime) {
-    localStorage.setItem('spx_app_build_time', window.newServerBuildTime);
+  if (window.newServerHash) {
+    sessionStorage.setItem('spx_current_page_hash', window.newServerHash);
   }
+  // Thêm query timestamp để ép trình duyệt xóa sạch cache file cũ và nạp bản mới
   const baseUrl = window.location.href.split('?')[0];
   window.location.replace(baseUrl + '?v=' + Date.now());
 }
+
+// Chạy kiểm tra ngay khi mở app
+checkIndexFileChanges();
+
+// Tự động kiểm tra định kỳ mỗi 30 giây hoặc khi người dùng quay lại app từ ứng dụng khác
+setInterval(checkIndexFileChanges, 30000);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') checkIndexFileChanges();
+});
 
 checkForAppUpdates();
 

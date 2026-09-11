@@ -1297,6 +1297,41 @@ async function checkForAppUpdates() {
   }
 }
 
+// Kiểm tra update mỗi lần app được mở / quay lại foreground.
+// Không phụ thuộc vào bộ đếm 5 phút: rider mở app lúc nào thì kiểm tra lúc đó.
+let updateCheckInProgress = false;
+let appWasHidden = document.visibilityState === 'hidden';
+
+async function checkForAppUpdatesOnOpen() {
+  if (updateCheckInProgress) return;
+  updateCheckInProgress = true;
+  try {
+    await checkForAppUpdates();
+  } finally {
+    updateCheckInProgress = false;
+  }
+}
+
+// Kiểm tra ngay khi trang/app được mở.
+checkForAppUpdatesOnOpen();
+
+// Nếu app đang chạy nền rồi rider quay lại mở app, kiểm tra lại ngay.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    appWasHidden = true;
+    return;
+  }
+  if (document.visibilityState === 'visible' && appWasHidden) {
+    appWasHidden = false;
+    checkForAppUpdatesOnOpen();
+  }
+});
+
+// Hỗ trợ trường hợp PWA/WebView phát sự kiện pageshow khi app được mở lại.
+window.addEventListener('pageshow', () => {
+  checkForAppUpdatesOnOpen();
+});
+
 function showUpdateResult(message, success) {
   const toast = document.getElementById('updateResultToast');
   if (!toast) return;

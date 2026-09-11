@@ -691,7 +691,8 @@
 <!-- THÔNG BÁO TỰ ĐỘNG CẬP NHẬT KHI CÓ BẢN MỚI TRÊN GITHUB -->
 <div class="update-bar-toast" id="updateNotificationBar">
   <span>🚀 Đã có phiên bản mới cập nhật!</span>
-  <button class="btn" style="background:#fff; color:#0ea5e9; padding:4px 8px; font-size:11px;" onclick="location.reload(true)">Cập nhật ngay</button>
+  <button class="btn" style="background:#fff; color:#0ea5e9; padding:4px 8px; font-size:11px;" onclick="forceAppReload()">Cập nhật ngay</button>
+  
 </div>
 
 <header class="top-nav">
@@ -1159,6 +1160,11 @@ function toggleTheme() {
   document.documentElement.setAttribute('data-theme', newTheme);
   localStorage.setItem('spx_theme', newTheme);
   updateThemeBtnUI(newTheme);
+}
+function forceAppReload() {
+  // Thêm tham số ngẫu nhiên vào đuôi URL để bắt WebView xóa cache và load code mới tức thì
+  const cleanUrl = window.location.href.split('?')[0];
+  window.location.href = cleanUrl + '?update=' + Date.now();
 }
 
 function updateThemeBtnUI(theme) {
